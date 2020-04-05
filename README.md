@@ -21,7 +21,9 @@ Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; s
 
 Per il corretto funzionamento è necessario utilizzare il corretto Sistema di Riferimento CASSINI-SOLDNER.
 
-Giuliano Curti (original author) e Giuseppe Patti. Marco Lombardi (actual maintainer)
+Giuliano Curti (original author) e Giuseppe Patti
+
+Marco Lombardi (actual maintainer)
 
 ENGLISH VERSION
 ===============
@@ -41,4 +43,6 @@ An extension allowing to edit the "libretto di campagna" is currently under deve
 Please note that this plugin is strictly related to datas provided by the italian surveying agency (former Agenzia del Territorio is now Agenzia delle Entrate), and its use is then strictly limited to the italian country, by the way the routines included in it can hopefully be useful also abroad.
 We, as developers, will be glad to receive suggestions on how to improve our work. Have fun with it and Happy surveying!!
 
-Giuliano Curti (original author) e Giuseppe Patti. Marco Lombardi (actual maintainer)
+Giuliano Curti (original author) e Giuseppe Patti
+
+Marco Lombardi (actual maintainer)

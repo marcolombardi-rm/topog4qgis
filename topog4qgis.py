@@ -52,6 +52,7 @@ def about(mw,parent):
 + "\nbuild_date:   %s" % (parent.build_date)
 + "\nauthor:       %s" % (parent.author)
 + "\ncontributor:  %s" % (parent.contributor)
++ "\nmaintainer:   %s" % (parent.maintainer)
 + "\ncopyright:    %s" % (parent.copyright)
 + "\nlicense:      %s" % (parent.license)
 	)
@@ -103,7 +104,6 @@ def info(mw,vers,mail):
 + "\n"
 + "\nplease let us know about any encountered"
 + "\nproblems"
-+ "\n [" + mail + "]"
 	)
 
 # ----- graphic functions -----------
