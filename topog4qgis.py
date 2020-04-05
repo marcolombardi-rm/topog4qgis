@@ -1555,7 +1555,7 @@ class topog4qgis:
 	build_date = '2020-05-04'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
-    maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
+	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
 	copyright = '2013-2014 giuliano curti'
 	license = 'GPL  (http://www.gnu.org/licenses/gpl-2.0.html)'
 	anTxtList = []		# lista delle annotazioni
