@@ -1694,17 +1694,17 @@ class topog4qgis:
 		self.bGeoref.setDisabled(True)
 
 		# -------- validation menu -------------
-		mValid = mb.addMenu('Validate')
+		mValid = mb.addMenu('Verifiche')
 
-		self.bErrPf = QAction(QIcon(''),'Errore PF',self.dlg)        
+		self.bErrPf = QAction(QIcon(''),'Differenze su PF',self.dlg)        
 		self.bErrPf.triggered.connect(self.errorePF)
 		mValid.addAction(self.bErrPf)
 		self.bErrPf.setDisabled(True)
 
 		# ---------- inquiry menu --------------
-		mInquiry = mb.addMenu('Inquiry')
+		mInquiry = mb.addMenu('Funzioni')
 
-		self.bViewLib = QAction(QIcon(''),'Libretto',self.dlg)        
+		self.bViewLib = QAction(QIcon(''),'vedi Libretto',self.dlg)        
 		self.bViewLib.triggered.connect(self.librViewTool)
 		mInquiry.addAction(self.bViewLib)
 		self.bViewLib.setDisabled(True)
@@ -1719,7 +1719,7 @@ class topog4qgis:
 		mInquiry.addAction(self.bDistPfUff)
 		self.bDistPfUff.setDisabled(True)
 
-		self.bDistPfArch = QAction(QIcon(''),'Archivio distanze PF',self.dlg)        
+		self.bDistPfArch = QAction(QIcon(''),'Importa archivio distanze PF',self.dlg)        
 		self.bDistPfArch.triggered.connect(self.leggiDis)
 		mInquiry.addAction(self.bDistPfArch)
 		self.bDistPfArch.setDisabled(True)
@@ -2463,21 +2463,21 @@ class topog4qgis:
 		for i in listaPf:
 			c,x,y,z = pointArchivioCds(self.misurati,i)
 			oldCds.append([x,y,0.0])
-#		print "coordinate misurate",oldCds
+		#print("Coordinate PF misurate",oldCds)
 		newCds = []
 		for i in listaPf:
 			c,x,y,z = pointArchivioCds(self.edmPf,i)
 			newCds.append([x,y,0.0])
-#		print "coordinate ufficiali",newCds
-		print('Errore nel rilievo dei PF (misurati)')
-		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
+		print("Coordinate PF ufficiali",newCds)
+		print('Errore nel rilievo dei PF (misurati):')
+		#print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
 		# --------- collimati --------
 		oldCds = []
 		for i in listaPf:
 			c,x,y,z = pointArchivioCds(self.collimati,i)
 			oldCds.append([x,y,0.0])
-#		print "coordinate collimate",oldCds
-		print('Errore nel rilievo dei PF (collimati)')
+		print("Coordinate PF collimate",oldCds)
+		print('Errore nel rilievo dei PF (collimati):')
 		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
 
 # --------- inquiry functions --------------------
@@ -2588,7 +2588,8 @@ class topog4qgis:
 			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','/home/giuliano','*.dis')
 			if fname[0] != "":
 				# legge file
-				f = open(fname[0], 'r')
+				import codecs
+				f = codecs.open(fname[0], 'r', encoding='utf-8', errors='ignore')
 				print('Stampa dello storico delle distanze fra PF')
 				for data in f:
 					# pulisce la riga
@@ -2648,8 +2649,8 @@ class topog4qgis:
 				print('distanza %12.3f' % (d))
 				print('---------------------------------')
 				# visualizzazione
-				self.rubBnd.addPoint(QgsPoint(x0,y0))
-				self.rubBnd.addPoint(QgsPoint(x1,y1))
+				self.rubBnd.addPoint(QgsPointXY(x0,y0))
+				self.rubBnd.addPoint(QgsPointXY(x1,y1))
 				msg = "%12.3f" % (d)
 				x,y = (x0+x1)/2,(y0+y1)/2
 				tmp = annotationText(self.canvas,msg,QgsPoint(x,y))
