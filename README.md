@@ -19,7 +19,7 @@ Il plugin è strettamente legato al formato dei dati forniti dall'Agenzia del Te
 la gestione del rilievo è comunque sufficientemente generale da risultare utile, così almeno speriamo, in situazioni anche non nazionali.
 Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin.
 
-Per il corretto funzionamento è necessario utilizzare il corretto Sistema di Riferimento CASSINI-SOLDNER.
+Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER.
 
 Giuliano Curti (original author) e Giuseppe Patti
 
