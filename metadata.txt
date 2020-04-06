@@ -1,9 +1,9 @@
 [general]
-name=topog4qgis
+name=topog4qgis3
 qgisMinimumVersion=3.0
 description= Il tool permette di importare libretti in formato Pregeo (.dat) e di elaborarli per la visualizzazione su QGis3. 
 version=version 0.1
-author=Marco Lombardi (actual contributor and maintainer)
+author=Marco Lombardi (contributor and actual maintainer)
 email=marco.lombardi.rm@gmail.com
 about= Thanks to Giuliano Curti (original author) and Giuseppe Patti (contributor)
 category=Vector
