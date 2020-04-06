@@ -4,7 +4,7 @@ VERSIONE ITALIANA
 =================
 Plugin QGis per la trattazione di libretti Pregeo (atti di aggiornamento catastale)
 
-topo4qgis è un plugin per QGIS v.3.xx che consente il trattamento di rilievi celerimetrici con strumentazione ottico-digitale (teodolite, teodolite + distanziometro, stazione totale, ecc.) e, sperimentalmente, con strumentazione gps.
+topo4qgis3 è un plugin per QGIS v.3.xx che consente il trattamento di rilievi celerimetrici con strumentazione ottico-digitale (teodolite, teodolite + distanziometro, stazione totale, ecc.) e, sperimentalmente, con strumentazione gps.
 Il plugin si occupa di
 - trattare i rilievi eseguiti da diverse stazioni
 - verificare i punti ribattuti e
@@ -29,7 +29,7 @@ ENGLISH VERSION
 ===============
 QGis Plugin for the italian cadastre update procedure (Pregeo)
 
-topog4qgis is a QGis 3.xx plugin allowing the user to manage classical and gps surveys.
+topog4qgis3 is a QGis 3.xx plugin allowing the user to manage classical and gps surveys.
 Following operations are supported:
 - manage surveys from different stations
 - verify double points

@@ -1,5 +1,10 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
-001	2013-11-21
+2020-04-05
+	porting quasi totale del codice da QGIS2/PyQt4 a QGIS3/PyQt5
+	tutti gli output avvengono su console python
+	la rototraslazione viene al momento effettuata sui PF appartenenti allo stesso Foglio dell'oggetto del rilievo
+	rimangono ancora da sistemare le funzioni "Vedi Libretto" e "Importa archivio distanze PF"
+2013-11-21
 	il campo 'indice' dei layer modificato da INTEGER a STRING
 	inserita lettura delle distanze storiche dal file Dis
 	inserita lettura dei PF da file Taf
@@ -9,7 +14,7 @@
 	inserita la funzione erroreStazioni()
 	eliminata la funzione erroreFiduciali()
 	corretta l'anomalia che impediva la distinzione fra misurati e collimati
-000	2013-11-05
+2013-11-05
 	inserita la stampa delle distanze fra punti fiduciali
 	modificato la trasformazione delle misurate (ora centra sul primo PF ed allinea il secondo))
 	inserite stampe dei PF e dei vertici dell'EdM
@@ -44,7 +49,7 @@
 		dal riferimento geocentrico al riferimento topocentrico con origine nella baseline;
 		quando viene rilevata una baseline GPS,questa viene assunta come riferimento per
 		tutte le altre letture (per ora celerimetriche e allineamenti, ecc.) 
-000	2013-09-23
+2013-09-23
 	editing posizione polare relativa
 	editing posizione rettangolare relativa
 	editing posizione polare assoluta
@@ -52,34 +57,34 @@
 	aggiunto salvataggio CSV
 	aggiunto salvataggio libretto
 	aggiunta notazione angolare (360|400) a scelta dell'utente
-000	2013-09-20
+2013-09-20
 	(inizio) gestione delle registrazioni gps
-000	2013-09-19
+2013-09-19
 	aggiunta la funzione stazione+vertici mirati / verice+stazioni di mira
 	aggiunta funzione elencoStazioni()
 	openLibretto() spezzettata e lettura dei contorni delegata a openEDM_contorni()
 	ridenominti dei layer dell'EdM (fname_vertici, fname_contorni,ecc.)
 	openEdM() spezzettata in 3 funzioni
 	aggiunta la rubber band per il tracciamento dell'inquiry relativa di vertici
-000	2013-09-18
+2013-09-18
 	aggiunto attributo STAZIONE all'archivio dei punti (archivio + layer)
 	modificata l'inquiry dei punti per restituire anche la Z
 	aggiunta coordinata Z a vertici e pf dell'EdM per uniformare l'inquiry dei punti
-000	2013-09-17
+2013-09-17
 	inquiry della posizione polare relativa di vertici
 	inquiry della posizione rettangolare relativa di vertici
 	inquiry della posizione polare assoluta di vertici
 	inquiry della posizione rettangolare assoluta di vertici
-000	2013-09-15
+2013-09-15
 	lettura e trattamento dei contorni del rilievo
 	lettura e trattamento degli allineamenti e squadri
-000	2013-09-13
+2013-09-13
 	collimazione del rilievo sui fiduciali
-000	2013-09-12
+2013-09-12
 	stima dell'errore sui punti ribattuti
 	collimazione delle stazioni sulle precedenti
 	lettura (parziale) libretto
-000	2013-09-01
+2013-09-01
 	lettura estratti di mappa
-000	2013-08-31
+2013-08-31
 	impianto
