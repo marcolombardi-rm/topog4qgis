@@ -185,7 +185,7 @@ def annotationText(canvas,text,pos):
 		- pos		posizione (QgsPoint)
 	"""
 	myDoc = QTextDocument(text)
-	myTxt = QgsTextAnnotationItem(canvas)
+	myTxt = QgsTextAnnotation(canvas)
 	myTxt.setDocument(myDoc)
 	myTxt.setMapPosition(pos) 
 	canvas.refresh()
@@ -2162,10 +2162,10 @@ class topog4qgis3:
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
 			self.bPfTaf.setEnabled(True)
-			self.bViewLib.setEnabled(True)
+			self.bViewLib.setDisabled(True)
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
-			self.bDistPfArch.setEnabled(True)
+			self.bDistPfArch.setDisabled(True)
 			self.bStazList.setEnabled(True)
 			self.bStazVrt.setEnabled(True)
 			self.bVrtsStaz.setEnabled(True)
@@ -2483,7 +2483,7 @@ class topog4qgis3:
 # --------- inquiry functions --------------------
 
 	def librViewTool(self):
-		if self.cLayer.geometryType() == QGis.Point:	# occorre un vincolo più stringente
+		if self.cLayer.geometryType() == QgsPoint.isValid:	# occorre un vincolo più stringente
 			self.cLayer.removeSelection()
 			# try to disconnect all signals
 			if self.isClickToolActivated:
@@ -2554,22 +2554,22 @@ class topog4qgis3:
 				print('distanza %12.3f' % (d))
 				print('---------------------------------')
 				# visualizzazione
-				self.rubBnd.addPoint(QgsPoint(x0,y0))
-				self.rubBnd.addPoint(QgsPoint(x1,y1))
+				self.rubBnd.addPoint(QgsPointXY(x0,y0))
+				self.rubBnd.addPoint(QgsPointXY(x1,y1))
 				msg = "%12.3f" % (d)
 				x,y = (x0+x1)/2,(y0+y1)/2
-				tmp = annotationText(self.canvas,msg,QgsPoint(x,y))
+				tmp = annotationText(self.canvas,msg,QgsPointXY(x,y))
 				self.anTxtList.append(tmp)
 		# messaggio finale
-		QMessageBox.information(
-			self.iface.mainWindow(),
-			"distanze",
-			"Done"
-		)
+		#QMessageBox.information(
+		#	self.iface.mainWindow(),
+		#	"distanze",
+		#	"Done"
+		#)
 		# elimina gli annotationText
-		for i in self.anTxtList:
-			self.canvas.scene().removeItem(i)
-		self.canvas.refresh()
+		#for i in self.anTxtList:
+		#	self.canvas.scene().removeItem(i)
+		#self.canvas.refresh()
 		# rimuove la rubber band
 		self.rubBnd.reset()
 
@@ -2595,10 +2595,14 @@ class topog4qgis3:
 					# pulisce la riga
 					data = data.rstrip('\n')
 					data = data.rstrip('\r')
+					len_comCod =(len(comCod))
+					#print('matcha il comune',data[0:len_comCod],data[18:18+len_comCod])
+					#print('matcha il comune',data[18:18+len_comCod])
+					#print('matcha il comune',comCod)                    
 					if data[0:5] == comCod and data[18:23] == comCod:
-#						print data,'matcha il comune',comCod
+						#print('matcha il comune',comCod)
 						if data[7:10] == fgCod and data[7:10] == fgCod:
-#							print data,'matcha il foglio',fgCod
+							#print('matcha il foglio',fgCod)
 							pf1 = int(data[15:17])
 							pf2 = int(data[33:35])
 							if pf1 < 10:
@@ -2653,18 +2657,18 @@ class topog4qgis3:
 				self.rubBnd.addPoint(QgsPointXY(x1,y1))
 				msg = "%12.3f" % (d)
 				x,y = (x0+x1)/2,(y0+y1)/2
-				tmp = annotationText(self.canvas,msg,QgsPoint(x,y))
+				tmp = annotationText(self.canvas,msg,QgsPointXY(x,y))
 				self.anTxtList.append(tmp)
 		# messaggio finale
-		QMessageBox.information(
-			self.iface.mainWindow(),
-			"distanze",
-			"Done"
-		)
+		#QMessageBox.information(
+		#	self.iface.mainWindow(),
+		#	"distanze",
+		#	"Done"
+		#)
 		# elimina gli annotationText
-		for i in self.anTxtList:
-			self.canvas.scene().removeItem(i)
-		self.canvas.refresh()
+		#for i in self.anTxtList:
+		#	self.canvas.scene().removeItem(i)
+		#self.canvas.refresh()
 		# rimuove la rubber band
 		self.rubBnd.reset()
 
