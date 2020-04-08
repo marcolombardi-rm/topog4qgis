@@ -16,9 +16,9 @@ tags=cad,vector,survey
 ; in una futura versione dell'applicazione web
 ; sarà probabilmente possibile creare un progetto su redmine
 ; se questi metadati non sono compilati
-homepage=https://github.com/marcolombardi-rm/topog4qgis
-tracker=
-repository=http://plugins.qgis.org/plugins/topog4qgis
+homepage=https://github.com/marcolombardi-rm/topog4qgis3
+tracker=https://github.com/marcolombardi-rm/topog4qgis3/issues
+repository=http://plugins.qgis.org/plugins/topog4qgis3
 icon=icon.png
 
 ; flag sperimentale
