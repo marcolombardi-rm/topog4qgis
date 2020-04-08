@@ -29,7 +29,7 @@ topog4qgis3		A QGIS plugin Tools for managing Topographic tool on vector
 import os,math,copy,functools,operator
 
 # Import the PyQt and QGIS libraries
-from PyQt5 import Qt, QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtGui import *
