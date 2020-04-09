@@ -29,7 +29,7 @@ topog4qgis3		A QGIS plugin Tools for managing Topographic tool on vector
 import os,math,copy,functools,operator
 
 # Import the PyQt and QGIS libraries
-from PyQt5 import Qt, QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtGui import *
@@ -343,7 +343,7 @@ def matrixMultiplication(mat1,mat2):
 		print ('matrici non congruenti per la moltiplicazione')
 		return -1
 
-def matRotoTrasla(s1,s2,d1,d2):
+def matRotoTrasla(s1,s2,d1,d2,angGeoref):
 	"""
 		matrice di collimazione a 2 punti
 		s1	vecchio centro
@@ -358,22 +358,56 @@ def matRotoTrasla(s1,s2,d1,d2):
 	d2x,d2y,d2z = d2
 	# calcola matrice di trasformazione
 	mat = matTranslation3D(-s1x,-s1y,-s1z)
-#	print "dopo 1.a traslazione"
-#	printMatrix(mat)
+	if angGeoref == 0:
+		# ruota la linea s1-s2 sull'orizzontale
+		a1 = math.atan2(s2y-s1y,s2x-s1x)
+		# ruota per allinearla a d1-d2
+		a2 = math.atan2(d2y-d1y,d2x-d1x)
+		angGeoref = a2-a1
+	mat1 = matRotation3DinZ(angGeoref)
+	mat = matrixMultiplication(mat1,mat)
+	#print("dopo rotazione")
+	#printMatrix(mat)
+	#print("trasla nel punto d1",d1x,d1y,d1z)
+	mat1 = matTranslation3D(d1x,d1y,d1z)
+	mat = matrixMultiplication(mat1,mat)
+	#print("dopo 2.a traslazione")
+	#printMatrix(mat)
+	return mat
+    
+def matRotoTraslaTS(s1,s2,d1,d2):
+	"""
+		matrice di collimazione a 2 punti
+		s1	vecchio centro
+		s2	vecchio punto di allineamento
+		d1	nuovo centro
+		d2	nuovo punto di allineamento
+		rototrasla in XY e trasla in Z
+	"""
+	s1x,s1y,s1z = s1
+	s2x,s2y,s2z = s2
+	d1x,d1y,d1z = d1
+	d2x,d2y,d2z = d2
+	# calcola matrice di trasformazione
+	mat = matTranslation3D(-s1x,-s1y,-s1z)
+	#print("dopo 1.a traslazione")
+	#printMatrix(mat)
 	# ruota la linea s1-s2 sull'orizzontale
 	a1 = math.atan2(s2y-s1y,s2x-s1x)
 	# ruota per allinearla a d1-d2
 	a2 = math.atan2(d2y-d1y,d2x-d1x)
-#	print "ruota di",a2-a1
-	mat1 = matRotation3DinZ(a2-a1)
+	#print("ruota di a2-a1=",0)
+	#print("a2=",a2)
+	#print("a1=",a1)
+	mat1 = matRotation3DinZ(0)
 	mat = matrixMultiplication(mat1,mat)
-#	print "dopo rotazione"
-#	printMatrix(mat)
-#	print "trasla nel punto d1",d1x,d1y,d1z
+	#print("dopo rotazione")
+	#printMatrix(mat)
+	#print("trasla nel punto d1",d1x,d1y,d1z)
 	mat1 = matTranslation3D(d1x,d1y,d1z)
 	mat = matrixMultiplication(mat1,mat)
-#	print "dopo 2.a traslazione"
-#	printMatrix(mat)
+	#print("dopo 2.a traslazione")
+	#printMatrix(mat)
 	return mat
 
 def trasformaPunti2D(points,mat):
@@ -907,6 +941,9 @@ def stazioniLista(libretto):
 		if tmp[0] == '1':
 			if ',' not in tmp[2]:	# controlla che non sia una lettura gps
 				list.append(tmp[1])
+			else:
+				list.append('')
+				print("trattasi di libretto gps")
 	return list
 
 def lettureFraStazioni(libretto):
@@ -1115,7 +1152,7 @@ def collimazioneStazione(rilievo,archivio):
 				d2 = [x,y,z]
 #				print "alla posizione",x,y,z
 				# matrice di trasformazione
-				mat = matRotoTrasla(s1,s2,d1,d2)
+				mat = matRotoTraslaTS(s1,s2,d1,d2)
 #				print "matrice di trasformazione",mat
 				collimati = trasformaPunti3D(rilievo,mat)
 			else:
@@ -1133,7 +1170,7 @@ def collimazioneStazione(rilievo,archivio):
 						pos,x,y,z = pointArchivioCds(archivio,k)
 						d2 = [x,y,z]
 						# matrice di trasformazione
-						mat = matRotoTrasla(s1,s2,d1,d2)
+						mat = matRotoTraslaTS(s1,s2,d1,d2)
 #						print "matrice di trasformazione",mat
 						collimati = trasformaPunti3D(rilievo,mat)	# si può usare matrixMultiplication()
 						break
@@ -1169,7 +1206,7 @@ def allEsquad(archivio,allin):
 		z = 0.0
 		return [cod,x,y,z,note,staz,nRiga]
 
-def collimazione2PF(oldCds,newCds,archivio):
+def collimazione2PF(oldCds,newCds,archivio,angGeoref):
 	"""
 		esegue la georeferenzazione a due PF, il primo di centratura ed
 		il secondo di allineamento;
@@ -1185,7 +1222,7 @@ def collimazione2PF(oldCds,newCds,archivio):
 	newA = newCds[1] 
 #	print "allinea da",oldA,"a",newA
 	# esegue la rototraslazione (collimazione a 2 punti)
-	mat = matRotoTrasla(oldC,oldA,newC,newA)
+	mat = matRotoTrasla(oldC,oldA,newC,newA,angGeoref)
 #	print "matrice di rototraslazione"
 #	printMatrix(mat)
 	archivio = trasformaPunti3D(archivio,mat)	# non si può usare matrixMultiplication() perchè ci sono altri elementi da conservare
@@ -2165,7 +2202,7 @@ class topog4qgis3:
 			self.bViewLib.setDisabled(True)
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
-			self.bDistPfArch.setDisabled(True)
+			self.bDistPfArch.setEnabled(True)
 			self.bStazList.setEnabled(True)
 			self.bStazVrt.setEnabled(True)
 			self.bVrtsStaz.setEnabled(True)
@@ -2296,53 +2333,69 @@ class topog4qgis3:
 		# cerca i PF
 		pfList = pfLista(self.libretto)
 		if pfList:
-			pfCod,fgCod,comCod = pfList[0].split('/')	# prende uno qualsiasi, il primo
-			fgCod = fgCod[0:-1]	# elimina ultimo carattere
-			print("Cerco i PF del Foglio",fgCod,"del Comune",comCod)
+			lastfgCod = ""
 			# legge file
 			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.taf')
-			if fname[0] != "":
-				# legge file
-				import codecs
-				f = codecs.open(fname[0], 'r', encoding='utf-8', errors='ignore')
-				for data in f:
-					if fgCod[0] == "A":
-						fgCod = "10" + fgCod[1:3]
-					if fgCod[0] == "B":
-						fgCod = "11" + fgCod[1:3]
-					# pulisce la riga
-					data = data.rstrip('\n')
-					data = data.rstrip('\r')
-					len_comCod =(len(comCod))
-					if data[0:len_comCod] == comCod:
-						if int(data[6:10]) == int(fgCod):
-							#print('matcha il foglio',int(fgCod))
-							tmp = int(data[15:17])
-							fgAll = str(data[11:12])                           
-							if fgAll == " ":
-								fgAll = "0"
-							#print('matcha il foglio',int(fgCod),'allegato',fgAll)                            
-							if fgCod[0:2] == "10":
-								fgCod = "A" + fgCod[2:4]
-								#print(fgCod)
-							if fgCod[0:2] == "11":
-								fgCod = "B" + fgCod[2:4] 
-								#print(fgCod)                                
-							if tmp < 10:
-								txt = "PF0%1s/%3s%1s/" % (tmp,fgCod,fgAll) + comCod
-							else:
-								txt = "PF%2s/%3s%1s/" % (tmp,fgCod,fgAll) + comCod
-							#print(txt)
-							if txt in pfList:	# matcha anche il pf
-								y,x = data[102:114],data[115:127]
-								print("Trovato PF",txt,x,y)
-								self.edmPf.append([txt,float(x),float(y),0])
-				# crea layer PF
-				if len(self.edmPf):
-					self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmPf)
-					self.layEdmPf = self.cLayer
-					self.cLayer.setLabelsEnabled(True)
-					print('Layer punti fiduciali completato')
+			for i in range(0,len(pfList)):
+				pfCod,fgCod,comCod = pfList[i].split('/')	# prende uno qualsiasi, il primo
+				fgCod = fgCod[0:-1]	# elimina ultimo carattere
+				#print("lastfgCod",lastfgCod)
+				if fgCod == lastfgCod:
+					break
+				print("Cerco i PF del Foglio",fgCod,"del Comune",comCod)
+				if fname[0] != "":
+					# legge file
+					import codecs
+					f = codecs.open(fname[0], 'r', encoding='utf-8', errors='ignore')
+					for data in f:
+						if fgCod[0] == "A":
+							fgCod = "10" + fgCod[1:3]
+						if fgCod[0] == "B":
+							fgCod = "11" + fgCod[1:3]
+						# pulisce la riga
+						data = data.rstrip('\n')
+						data = data.rstrip('\r')
+						len_comCod =(len(comCod))
+						if data[0:len_comCod] == comCod:
+							if int(data[6:10]) == int(fgCod):
+								#print('matcha il foglio',int(fgCod))
+								tmp = int(data[15:17])
+								fgAll = str(data[11:12])                           
+								if fgAll == " ":
+									fgAll = "0"
+								lastfgCod = fgCod                                    
+								#print('matcha il foglio',int(fgCod),'allegato',fgAll)                            
+								if fgCod[0:2] == "10":
+									fgCod = "A" + fgCod[2:4]
+									lastfgCod = fgCod                                    
+									#print(fgCod)
+								if fgCod[0:2] == "11":
+									fgCod = "B" + fgCod[2:4] 
+									lastfgCod = fgCod                                    
+									#print(fgCod)                                
+								if tmp < 10:
+									txt = "PF0%1s/%3s%1s/" % (tmp,fgCod,fgAll) + comCod
+								else:
+									txt = "PF%2s/%3s%1s/" % (tmp,fgCod,fgAll) + comCod
+								#print(txt)
+								if txt in pfList:	# matcha anche il pf
+									y,x = data[102:114],data[115:127]
+									print("Trovato",txt,x,y)
+									self.edmPf.append([txt,float(x),float(y),0])
+							#lastfgCod = fgCod				
+				else:
+					self.iface.messageBar().pushMessage(
+					"importaPfDaTaf",
+					"Devi darmi un nome di file valido",
+					level=Qgis.Warning,
+					duration=4
+				)
+			# crea layer PF
+			if len(self.edmPf):
+				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmPf)
+				self.layEdmPf = self.cLayer
+				self.cLayer.setLabelsEnabled(True)
+				print('Layer punti fiduciali completato')
 				# attiva i menu
 				self.bGeoref.setEnabled(True)
 				self.bPfUff.setEnabled(True)
@@ -2351,13 +2404,6 @@ class topog4qgis3:
 				self.bPAP.setEnabled(True)
 				self.bRRP.setEnabled(True)
 				self.bPRP.setEnabled(True)
-			else:
-					self.iface.messageBar().pushMessage(
-					"importaPfDaTaf",
-					"Devi darmi un nome di file valido",
-					level=Qgis.Warning,
-					duration=4
-				)
 		else:
 			self.iface.messageBar().pushMessage(
 				"importaPfDaTaf",
@@ -2365,7 +2411,7 @@ class topog4qgis3:
 				level=Qgis.Warning,
 				duration=4
 			)
-
+            
 #	---------- referencing functions --------------------
 
 	def georeferencer(self):
@@ -2373,8 +2419,34 @@ class topog4qgis3:
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
 		"""
-		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
+		for line in self.libretto:
+			tmp = line.split('|')
+			if tmp[0] == '1':
+				if ',' not in tmp[2]:
+					print("trattasi di libretto celerimetrico")
+					for i0,j0 in enumerate(listaPf):
+						p,x0,y0,z = pointArchivioCds(self.misurati,j0)
+						p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
+						for i1 in range(i0,1):
+							j1 = listaPf[i1]
+							p,x1,y1,z = pointArchivioCds(self.misurati,j1)
+							p,e1,n1,z = pointArchivioCds(self.edmPf,j1)                    
+                			# stampa
+					print('%s %12.3f %12.3f' % (i0,x0,y0))
+					print('%s %12.3f %12.3f' % (i1,x1,y1))
+					m1=float((y1-y0)/(x1-x0))
+					#print("coefficiente angolare m1",m1) 
+					print('%s %12.3f %12.3f' % (i0,e0,n0))
+					print('%s %12.3f %12.3f' % (i1,e1,n1))
+					m2=float((n1-n0)/(e1-e0))
+					#print("coefficiente angolare m2",m2)
+					angGeoref = math.atan2((m1-m2),(1+(m1*m2)))
+				else:
+					print("trattasi di libretto gps")        
+					angGeoref = 0
+					break
+		#print("ruota di",angGeoref)        
 		print("Rilevati i PF",listaPf)
 		if len(listaPf) < 2:
 			self.iface.messageBar().pushMessage(
@@ -2389,16 +2461,16 @@ class topog4qgis3:
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.misurati,i)
 				oldCds.append([x,y,z])
-#			print "coordinate origine",oldCds
+			#print("coordinate origine",oldCds)
 			# ... e quelle di destinazione
 			newCds = []
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.edmPf,i)
 				newCds.append([x,y,z])
-#			print "coordinate destinazione",newCds
+			#print("coordinate destinazione",newCds)
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
 			nM = len(self.misurati)
-			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti)
+			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti,angGeoref)
 			self.misurati = tmp[0:nM]
 			self.ribattuti = tmp[nM:]
 			# cancella i layer dei misurati e ribattuti
@@ -2582,8 +2654,9 @@ class topog4qgis3:
 		pfList = pfLista(self.libretto)
 		if pfList:
 			pfCod,fgCod,comCod = pfList[0].split('/')	# prende uno qualsiasi, il primo
-			fgCod = fgCod[0:-1]	# elimina ultimo carattere
-#			print "cerco i PF del foglio",fgCod,"del comune di",comCod
+			fgAll = fgCod[3]	# elimina ultimo carattere
+			fgCod = fgCod[0:-1]	# elimina ultimo carattere 
+			print("cerco i PF del foglio",fgCod,"allegato",fgAll,"del Comune di",comCod)
 			# legge file
 			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','/home/giuliano','*.dis')
 			if fname[0] != "":
@@ -2596,25 +2669,25 @@ class topog4qgis3:
 					data = data.rstrip('\n')
 					data = data.rstrip('\r')
 					len_comCod =(len(comCod))
-					#print('matcha il comune',data[0:len_comCod],data[18:18+len_comCod])
+					#print('matcha il comune',data[0:len_comCod],comCod)
 					#print('matcha il comune',data[18:18+len_comCod])
 					#print('matcha il comune',comCod)                    
-					if data[0:5] == comCod and data[18:23] == comCod:
-						#print('matcha il comune',comCod)
-						if data[7:10] == fgCod and data[7:10] == fgCod:
-							#print('matcha il foglio',fgCod)
-							pf1 = int(data[15:17])
-							pf2 = int(data[33:35])
-							if pf1 < 10:
-								txt1 = "PF0%1s/%3s0/%5s" % (pf1,fgCod,comCod)
-							else:
-								txt1 = "PF%2s/%3s0/%5s" % (pf1,fgCod,comCod)
-							if pf2 < 10:
-								txt2 = "PF0%1s/%3s0/%5s" % (pf2,fgCod,comCod)
-							else:
-								txt2 = "PF%2s/%3s0/%5s" % (pf2,fgCod,comCod)
-							if txt1 in pfList and txt2 in pfList:	# matchano anche i pf
-								print(txt1,txt2,data[55:62])
+					if data[0:len_comCod] == comCod:# and data[7] == fgAll:# and data[18:18+len_comCod] == comCod and data[25] == fgAll:
+						print('matcha il comune',data[0:len_comCod],comCod)
+#						if data[7:10] == fgCod and data[7:10] == fgCod:
+#							#print('matcha il foglio',fgCod)
+#							pf1 = int(data[15:17])
+#							pf2 = int(data[33:35])
+#							if pf1 < 10:
+#								txt1 = "PF0%1s/%3s0/%5s" % (pf1,fgCod,comCod)
+#							else:
+#								txt1 = "PF%2s/%3s0/%5s" % (pf1,fgCod,comCod)
+#							if pf2 < 10:
+#								txt2 = "PF0%1s/%3s0/%5s" % (pf2,fgCod,comCod)
+#							else:
+#								txt2 = "PF%2s/%3s0/%5s" % (pf2,fgCod,comCod)
+#							if txt1 in pfList and txt2 in pfList:	# matchano anche i pf
+#								print(txt1,txt2,data[55:62])
 			else:
 					self.iface.messageBar().pushMessage(
 					"importaPfDaTaf",
