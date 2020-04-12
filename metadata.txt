@@ -1,5 +1,5 @@
 [general]
-name=topog4qgis3
+name=topog4qgis
 qgisMinimumVersion=3.0
 description= Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo). | Il tool permette di importare libretti in formato Pregeo (.dat) e di elaborarli per la visualizzazione su QGis3. 
 version=version 0.1
@@ -16,9 +16,9 @@ tags=cad,vector,survey
 ; in una futura versione dell'applicazione web
 ; sarà probabilmente possibile creare un progetto su redmine
 ; se questi metadati non sono compilati
-homepage=https://github.com/marcolombardi-rm/topog4qgis3
-tracker=https://github.com/marcolombardi-rm/topog4qgis3/issues
-repository=http://plugins.qgis.org/plugins/topog4qgis3
+homepage=https://github.com/marcolombardi-rm/topog4qgis
+tracker=https://github.com/marcolombardi-rm/topog4qgis/issues
+repository=http://plugins.qgis.org/plugins/topog4qgis
 icon=icon.png
 
 ; flag sperimentale

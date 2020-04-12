@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 def name():
-	return "topog4qgis3"
+	return "topog4qgis"
 
 def description():
 	return "Experimental topographic tools for qGis"
@@ -19,5 +19,5 @@ def authorName():
 	return "giuliano curti"
 
 def classFactory(iface):
-    from .topog4qgis3 import topog4qgis3
-    return topog4qgis3(iface)
+    from .topog4qgis import topog4qgis
+    return topog4qgis(iface)
