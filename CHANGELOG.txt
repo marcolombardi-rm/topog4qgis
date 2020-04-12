@@ -1,9 +1,15 @@
------------ topog4qgis.py: CHANGELOG ---------------
+----------- topog4qgis3.py: CHANGELOG ---------------
+2020-04-11
+	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
+	i rilievi misti TPS+GPS necessitano di una routine specifica
+	aggiunta tra le funzioni la possibilità di verificare i baricentri tra i PF ufficiali e quelli misurati
+	adesso i libretti vengono rototraslati in modo baricentrico così da restituire un risultato più simile a Pre.Geo.
+	rototraslazione separata in due routine diverse: una per rilievi TS e una per rilievi GPS
 2020-04-05
 	porting quasi totale del codice da QGIS2/PyQt4 a QGIS3/PyQt5
 	tutti gli output avvengono su console python
 	la rototraslazione viene al momento effettuata sui PF appartenenti allo stesso Foglio dell'oggetto del rilievo
-	rimangono ancora da sistemare le funzioni "Vedi Libretto" e "Importa archivio distanze PF"
+	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 2013-11-21
 	il campo 'indice' dei layer modificato da INTEGER a STRING
 	inserita lettura delle distanze storiche dal file Dis

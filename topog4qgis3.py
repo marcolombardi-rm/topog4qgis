@@ -1213,7 +1213,7 @@ def collimazione2PF(oldCds,newCds,archivio,angGeoref):
 		- oldC	coordinate origine
 		- newC	coodinate destinazione
 	"""
-	# coordinate del centro
+	# coordinate del centro 
 	oldC = oldCds[0]
 	newC = newCds[0]
 #	print "centra da",oldC,"a",newC
@@ -1659,6 +1659,7 @@ class topog4qgis3:
 		self.bPRP.setDisabled(True)
 		self.bGeoref.setDisabled(True)
 		self.bErrPf.setDisabled(True)
+		self.bBaric.setDisabled(True)        
 		self.bPfUff.setDisabled(True)
 		self.bDistPfUff.setDisabled(True)
 		self.bDistPfArch.setDisabled(True)
@@ -1737,6 +1738,11 @@ class topog4qgis3:
 		self.bErrPf.triggered.connect(self.errorePF)
 		mValid.addAction(self.bErrPf)
 		self.bErrPf.setDisabled(True)
+        
+		self.bBaric = QAction(QIcon(''),'vedi Baricentri',self.dlg)        
+		self.bBaric.triggered.connect(self.baricentro)
+		mValid.addAction(self.bBaric)
+		self.bBaric.setDisabled(True)
 
 		# ---------- inquiry menu --------------
 		mInquiry = mb.addMenu('Funzioni')
@@ -2202,7 +2208,7 @@ class topog4qgis3:
 			self.bViewLib.setDisabled(True)
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
-			self.bDistPfArch.setEnabled(True)
+			self.bDistPfArch.setDisabled(True)
 			self.bStazList.setEnabled(True)
 			self.bStazVrt.setEnabled(True)
 			self.bVrtsStaz.setEnabled(True)
@@ -2412,6 +2418,46 @@ class topog4qgis3:
 				duration=4
 			)
             
+#	------------ calcolo baricentro  --------------------
+
+	def baricentro(self):
+		listaPf = pfLista(self.libretto)
+		for i0,j0 in enumerate(listaPf):
+			p,x0,y0,z = pointArchivioCds(self.misurati,j0)
+			p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
+			for i1 in range(i0,1):
+				j1 = listaPf[i1]
+				p,x1,y1,z = pointArchivioCds(self.misurati,j1)
+				p,e1,n1,z = pointArchivioCds(self.edmPf,j1) 
+			for i2 in range(i0,2):
+				j2 = listaPf[i2]
+				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
+				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
+		# stampa
+		#print('%s %12.3f %12.3f' % (i0,x0,y0))
+		#print('%s %12.3f %12.3f' % (i1,x1,y1))
+		#print('%s %12.3f %12.3f' % (i2,x2,y2))
+		barPFcol = []
+		barPFcol.append((x0+x1+x2)/3)
+		barPFcol.append((y0+y1+y2)/3)
+		barPFcol.append(0)
+		print("baricentro PF collimati",barPFcol)
+        
+		#print('%s %12.3f %12.3f' % (i0,e0,n0))
+		#print('%s %12.3f %12.3f' % (i1,e1,n1))
+		#print('%s %12.3f %12.3f' % (i2,e2,n2))  
+		barPFuff = []
+		barPFuff.append((e0+e1+e2)/3)
+		barPFuff.append((n0+n1+n2)/3)
+		barPFuff.append(0)
+		print("baricentro PF ufficiali",barPFuff)
+
+		deltaX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
+		deltaY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
+		print("deltaX",deltaX)
+		print("deltaY",deltaY)       
+		return barPFcol,barPFuff, deltaX, deltaY
+            
 #	---------- referencing functions --------------------
 
 	def georeferencer(self):
@@ -2455,7 +2501,7 @@ class topog4qgis3:
 				level=Qgis.Warning,
 				duration=3
 			)
-		else:
+		else:   
 			# carica le coordinate origine
 			oldCds = []
 			for i in listaPf:
@@ -2469,7 +2515,7 @@ class topog4qgis3:
 				newCds.append([x,y,z])
 			#print("coordinate destinazione",newCds)
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
-			nM = len(self.misurati)
+			nM = len(self.misurati)      
 			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti,angGeoref)
 			self.misurati = tmp[0:nM]
 			self.ribattuti = tmp[nM:]
@@ -2487,39 +2533,58 @@ class topog4qgis3:
 			self.layLibRibat = self.cLayer
 			self.cLayer.setLabelsEnabled(True)
 			print('Layer vertici ribattuti completato')
-			self.creaLineLayer('Rilievo_contorni',self.RilCtrn,self.RilSty,self.misurati)
-			self.layLibCtrn = self.cLayer
+#			self.creaLineLayer('Rilievo_contorni_misurati',self.RilCtrn,self.RilSty,self.misurati)
+#			self.layLibCtrn = self.cLayer
 			# ------ attiva la simbologia categorizzata per i contorni -------
-			myRen = catSymbol(
-				self.cLayer.geometryType(),
-				'TRATTO',
-				[
-					['NC','#000000','nero continuo'],
-					['RC','#ff0000','rosso continuo']
-				]
-			)
-			self.cLayer.setRenderer(myRen)
-			print('Layer contorni libretto completati')
+#			myRen = catSymbol(
+#				self.cLayer.geometryType(),
+#				'TRATTO',
+#				[
+#					['NC','#000000','nero continuo'],
+#					['RC','#ff0000','rosso continuo']
+#				]
+#			)
+#			self.cLayer.setRenderer(myRen)
+#			print('Layer contorni libretto completati')
 			# ----------- collimazione a 3 PF (rototraslazione) ------------
 			# NB: ricordare che in caso di mancata collimazione a 3 PF
 			#      i collimati coincidono con i misurati	
 			if len(listaPf) >= 3:
+				barPFcol, barPFuff, deltaX, deltaY = self.baricentro()
 				self.collimati = copy.deepcopy(self.misurati)
 				# ricarica le coordinate origine
+				#print(barPFcol, barPFuff)                
 				oldCds = []
 				for i in listaPf:
 					c,x,y,z = pointArchivioCds(self.collimati,i)
-					oldCds.append([x,y,z])
-#				print "coordinate origine",oldCds
+					oldCds.append([x+deltaX,y+deltaY,z])
+				#print("3pf coordinate origine",oldCds)
+				newCds = []
+				for i in listaPf:
+					c,x,y,z = pointArchivioCds(self.edmPf,i)
+					newCds.append([x+deltaX,y+deltaY,z])                
 				self.collimati = collimazione3PF(oldCds,newCds,self.collimati)
 				# crea layer vertici collimati
-				#self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
-				#self.cLayer.setLabelsEnabled(True)
-				#self.layLibCollim = self.cLayer
-				#print('Layer vertici collimati completato')
+				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
+				self.cLayer.setLabelsEnabled(True)
+				self.layLibCollim = self.cLayer
+				print('Layer vertici collimati su PF completato')
+				self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
+				self.layLibCtrn = self.cLayer
+				# ------ attiva la simbologia categorizzata per i contorni -------
+				myRen = catSymbol(
+					self.cLayer.geometryType(),
+					'TRATTO',
+					[
+						['NC','#000000','nero continuo'],
+						['RC','#ff0000','rosso continuo']
+					]
+				)
+				self.cLayer.setRenderer(myRen)                
 				# attiva il menu
 				self.bCollimList.setEnabled(True)
 				self.bErrPf.setEnabled(True)
+				self.bBaric.setEnabled(True)                
 
 #	---------- validation functions --------------------
 
@@ -2673,9 +2738,9 @@ class topog4qgis3:
 					#print('matcha il comune',data[18:18+len_comCod])
 					#print('matcha il comune',comCod)                    
 					if data[0:len_comCod] == comCod:# and data[7] == fgAll:# and data[18:18+len_comCod] == comCod and data[25] == fgAll:
-						print('matcha il comune',data[0:len_comCod],comCod)
-#						if data[7:10] == fgCod and data[7:10] == fgCod:
-#							#print('matcha il foglio',fgCod)
+						#print('matchato il comune',data[0:len_comCod])
+						if data[7:10] == fgCod and data[7:10] == fgCod:
+							print('matcha il foglio',fgCod)
 #							pf1 = int(data[15:17])
 #							pf2 = int(data[33:35])
 #							if pf1 < 10:
