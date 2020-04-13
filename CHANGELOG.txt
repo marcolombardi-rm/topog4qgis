@@ -1,4 +1,9 @@
------------ topog4qgis3.py: CHANGELOG ---------------
+----------- topog4qgis.py: CHANGELOG ---------------
+2020-04-13
+	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
+	i rilievi misti TPS+GPS necessitano di una routine specifica
+	ripristinata la navigazione poligonale
+	aggiunta tra le funzioni la possibilità di verificare le distanze tra PF da TAF e tra PF da libretti
 2020-04-11
 	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 	i rilievi misti TPS+GPS necessitano di una routine specifica
