@@ -788,7 +788,7 @@ def openLibretto_gps(libretto):
 					# pulisce la lista
 					lista =[]
 				else:
-					print('non è baseline')
+					#print('non è baseline')
 					if tmp[4]:
 						hp = float(tmp[4])
 					else:
@@ -940,10 +940,11 @@ def stazioniLista(libretto):
 		tmp = line.split('|')
 		if tmp[0] == '1':
 			if ',' not in tmp[2]:	# controlla che non sia una lettura gps
-				list.append(tmp[1])
+				list.append(tmp[1])                
 			else:
 				list.append('')
 				print("trattasi di libretto gps")
+	print("trattasi di libretto celerimetrico")
 	return list
 
 def lettureFraStazioni(libretto):
@@ -1392,13 +1393,13 @@ class celerimensuraDlg(QDialog):
 		hBox = QHBoxLayout()
 		vBox.addLayout(hBox)
 
-		btn = QPushButton("Refresh")
+		self.btn = QPushButton("Refresh")
 		self.btn.clicked.connect(self.refresh)
-		hBox.addWidget(btn)
+		hBox.addWidget(self.btn)
 
-		btn = QPushButton("Close")
+		self.btn = QPushButton("Close")
 		self.btn.clicked.connect(self.close)
-		hBox.addWidget(btn)
+		hBox.addWidget(self.btn)
 
 		self.redraw()
 		self.parametri()
@@ -1523,22 +1524,22 @@ class navigatorDlg(QDialog):
 		# ------------ navigatori ---------------
 		hBox = QHBoxLayout()
 		vBox.addLayout(hBox)
-		btn = QPushButton("<")
+		self.btn = QPushButton("<")
 		self.btn.clicked.connect(self.prev)
-		hBox.addWidget(btn)
+		hBox.addWidget(self.btn)
 		self.eLbl = QLabel(self)
 		self.eLbl.setText('')
 		hBox.addWidget(self.eLbl)
-		btn = QPushButton(">")
+		self.btn = QPushButton(">")
 		self.btn.clicked.connect(self.next)
-		hBox.addWidget(btn)
+		hBox.addWidget(self.btn)
 
 		# ------------ bottoni -------
 		hBox = QHBoxLayout()
 		vBox.addLayout(hBox)
-		btn = QPushButton("Go")
+		self.btn = QPushButton("Go")
 		self.btn.clicked.connect(self.update)
-		hBox.addWidget(btn)
+		hBox.addWidget(self.btn)
 
 		# inizializza la maschera
 		s1,s2 = self.lista[self.cntr]
@@ -1646,19 +1647,20 @@ class topog4qgis:
 		self.bDistPfRil.setDisabled(True)
 		self.bVrtsPrtcEdm.setDisabled(True)
 		self.bStazList.setDisabled(True)
-		self.bStazVrt.setDisabled(True)
-		self.bVrtsStaz.setDisabled(True)
+		#self.bStazVrt.setDisabled(True)
+		#self.bVrtsStaz.setDisabled(True)
 		self.bMisurList.setDisabled(True)
 		self.bRibatList.setDisabled(True)
 		self.bCollimList.setDisabled(True)
 		self.bNavPol.setDisabled(True)
 		self.bDistRid.setDisabled(True)
-		self.bRAP.setDisabled(True)
-		self.bPAP.setDisabled(True)
-		self.bRRP.setDisabled(True)
-		self.bPRP.setDisabled(True)
+		#self.bRAP.setDisabled(True)
+		#self.bPAP.setDisabled(True)
+		#self.bRRP.setDisabled(True)
+		#self.bPRP.setDisabled(True)
 		self.bGeoref.setDisabled(True)
 		self.bErrPf.setDisabled(True)
+		self.bDistPf.setDisabled(True)        
 		self.bBaric.setDisabled(True)        
 		self.bPfUff.setDisabled(True)
 		self.bDistPfUff.setDisabled(True)
@@ -1677,7 +1679,7 @@ class topog4qgis:
 		#self.dlg.setWindowFlags(Qt.CustomizeWindowHint)
 #		con il clickTool qui non si riesce più a prendere il comando del mouse dopo aver eseguito un comando esterno
 		# connect the layer changed handler to a signal that the TOC layer has changed
-		#verificare QObject.connect(self.iface,SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.myHandleLayerChange)
+		self.iface.currentLayerChanged.connect(self.myHandleLayerChange)
 		# out click tool will emit a QgsPoint on every click
 		self.clickTool = QgsMapToolEmitPoint(self.canvas)
 		# make our clickTool the tool that we'll use for now
@@ -1695,7 +1697,7 @@ class topog4qgis:
 
 #		-------- file menubar ------------
 		mb = QMenuBar(self.dlg)
-		mb.setGeometry(0,0,300,160)
+		mb.setGeometry(0,0,270,120)
 
 		# ---------- file menu -----------------
 		mFile = mb.addMenu('File')
@@ -1726,20 +1728,25 @@ class topog4qgis:
 		# ---------- referencng menu --------------
 		mGeoref = mb.addMenu('Elaborazione')
 
-		self.bGeoref = QAction(QIcon(''),'Rototrasla',self.dlg)        
+		self.bGeoref = QAction(QIcon(''),'Rototrasla su PF',self.dlg)        
 		self.bGeoref.triggered.connect(self.georeferencer)
 		mGeoref.addAction(self.bGeoref)
 		self.bGeoref.setDisabled(True)
 
 		# -------- validation menu -------------
-		mValid = mb.addMenu('Verifiche')
+		mValid = mb.addMenu('Calcoli')
 
-		self.bErrPf = QAction(QIcon(''),'Differenze su PF',self.dlg)        
+		self.bErrPf = QAction(QIcon(''),'Errore medio PF',self.dlg)        
 		self.bErrPf.triggered.connect(self.errorePF)
 		mValid.addAction(self.bErrPf)
 		self.bErrPf.setDisabled(True)
         
-		self.bBaric = QAction(QIcon(''),'vedi Baricentri',self.dlg)        
+		self.bDistPf = QAction(QIcon(''),'Distanze PF',self.dlg)        
+		self.bDistPf.triggered.connect(self.distanzePF)
+		mValid.addAction(self.bDistPf)
+		self.bDistPf.setDisabled(True)        
+        
+		self.bBaric = QAction(QIcon(''),'Baricentri Geometrici',self.dlg)        
 		self.bBaric.triggered.connect(self.baricentro)
 		mValid.addAction(self.bBaric)
 		self.bBaric.setDisabled(True)
@@ -1747,7 +1754,7 @@ class topog4qgis:
 		# ---------- inquiry menu --------------
 		mInquiry = mb.addMenu('Funzioni')
 
-		self.bViewLib = QAction(QIcon(''),'vedi Libretto',self.dlg)        
+		self.bViewLib = QAction(QIcon(''),'Vedi Libretto',self.dlg)        
 		self.bViewLib.triggered.connect(self.librViewTool)
 		mInquiry.addAction(self.bViewLib)
 		self.bViewLib.setDisabled(True)
@@ -1787,15 +1794,15 @@ class topog4qgis:
 		mInquiry.addAction(self.bStazList)
 		self.bStazList.setDisabled(True)
 
-		self.bStazVrt = QAction(QIcon(''),'Stazioni su Vertice',self.dlg)        
-		self.bStazVrt.triggered.connect(self.stazioniSuVerticeTool)
-		mInquiry.addAction(self.bStazVrt)
-		self.bStazVrt.setDisabled(True)
+		#self.bStazVrt = QAction(QIcon(''),'Stazioni su Vertice',self.dlg)        
+		#self.bStazVrt.triggered.connect(self.stazioniSuVerticeTool)
+		#mInquiry.addAction(self.bStazVrt)
+		#self.bStazVrt.setDisabled(True)
 
-		self.bVrtsStaz = QAction(QIcon(''),'Vertici da stazione',self.dlg)        
-		self.bVrtsStaz.triggered.connect(self.verticiDaStazioneTool)
-		mInquiry.addAction(self.bVrtsStaz)
-		self.bVrtsStaz.setDisabled(True)
+		#self.bVrtsStaz = QAction(QIcon(''),'Vertici da stazione',self.dlg)        
+		#self.bVrtsStaz.triggered.connect(self.verticiDaStazioneTool)
+		#mInquiry.addAction(self.bVrtsStaz)
+		#self.bVrtsStaz.setDisabled(True)
 
 		self.bMisurList = QAction(QIcon(''),'Elenco misurati',self.dlg)        
 		self.bMisurList.triggered.connect(self.elencoMisurati)
@@ -1822,25 +1829,25 @@ class topog4qgis:
 		mInquiry.addAction(self.bDistRid)
 		self.bDistRid.setDisabled(True)
 
-		self.bRAP = QAction(QIcon(''),'Rectangular absolute position',self.dlg)        
-		self.bRAP.triggered.connect(self.rectAbsPosTool)
-		mInquiry.addAction(self.bRAP)
-		self.bRAP.setDisabled(True)
+		#self.bRAP = QAction(QIcon(''),'Rectangular absolute position',self.dlg)        
+		#self.bRAP.triggered.connect(self.rectAbsPosTool)
+		#mInquiry.addAction(self.bRAP)
+		#self.bRAP.setDisabled(True)
 
-		self.bPAP = QAction(QIcon(''),'Polar absolute position',self.dlg)        
-		self.bPAP.triggered.connect(self.polAbsPosTool)
-		mInquiry.addAction(self.bPAP)
-		self.bPAP.setDisabled(True)
+		#self.bPAP = QAction(QIcon(''),'Polar absolute position',self.dlg)        
+		#self.bPAP.triggered.connect(self.polAbsPosTool)
+		#mInquiry.addAction(self.bPAP)
+		#self.bPAP.setDisabled(True)
 
-		self.bRRP = QAction(QIcon(''),'Rectangular relative position',self.dlg)        
-		self.bRRP.triggered.connect(self.rectRelPosTool)
-		mInquiry.addAction(self.bRRP)
-		self.bRRP.setDisabled(True)
+		#self.bRRP = QAction(QIcon(''),'Rectangular relative position',self.dlg)        
+		#self.bRRP.triggered.connect(self.rectRelPosTool)
+		#mInquiry.addAction(self.bRRP)
+		#self.bRRP.setDisabled(True)
 
-		self.bPRP = QAction(QIcon(''),'Polar relative position',self.dlg)        
-		self.bPRP.triggered.connect(self.polRelPosTool)
-		mInquiry.addAction(self.bPRP)
-		self.bPRP.setDisabled(True)
+		#self.bPRP = QAction(QIcon(''),'Polar relative position',self.dlg)        
+		#self.bPRP.triggered.connect(self.polRelPosTool)
+		#mInquiry.addAction(self.bPRP)
+		#self.bPRP.setDisabled(True)
 
 		# ----------- help menu ----------------
 		mHelp = mb.addMenu('Help')
@@ -1856,57 +1863,57 @@ class topog4qgis:
 		# ----- control panel-------
 		# ------ angle notation ------
 		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,30,100,20))
+		tmp.setGeometry(QRect(10,30,120,20))
 		tmp.setText('angle:')
 
 		self.bAngle = QPushButton('%d' % (self.a_giro),self.dlg)
 		self.bAngle.clicked.connect(self.switchAngle)
-		self.bAngle.setGeometry(QRect(110,30,100,20))
+		self.bAngle.setGeometry(QRect(110,30,120,20))
 
 		# ------ nome layer ------
 		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,50,100,20))
+		tmp.setGeometry(QRect(10,60,120,20))
 		tmp.setText('layer:')
 
 		self.eLay = QLabel(self.dlg)
-		self.eLay.setGeometry(QRect(110,50,100,20))
+		self.eLay.setGeometry(QRect(110,60,120,20))
 		self.eLay.setText('')
 
 		# ------ nome layer ------
-		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,70,100,20))
-		tmp.setText('type:')
+		#tmp = QLabel(self.dlg)
+		#tmp.setGeometry(QRect(10,70,120,20))
+		#tmp.setText('type:')
 
-		self.eType = QLabel(self.dlg)
-		self.eType.setGeometry(QRect(110,70,100,20))
-		self.eType.setText('')
+		#self.eType = QLabel(self.dlg)
+		#self.eType.setGeometry(QRect(110,70,120,20))
+		#self.eType.setText('')
 
 		# -------- editabilità  ----------
-		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,90,200,20))
-		tmp.setText('editable:')
+		#tmp = QLabel(self.dlg)
+		#tmp.setGeometry(QRect(10,90,120,20))
+		#tmp.setText('editable:')
 
-		self.eLayEdit = QLabel(self.dlg)
-		self.eLayEdit.setGeometry(QRect(110,90,100,20))
-		self.eLayEdit.setText('')
+		#self.eLayEdit = QLabel(self.dlg)
+		#self.eLayEdit.setGeometry(QRect(110,90,120,20))
+		#self.eLayEdit.setText('')
 
 		# ---- provider -----
 		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,110,200,20))
+		tmp.setGeometry(QRect(10,90,120,20))
 		tmp.setText('provider:')
 
 		self.eProv = QLabel(self.dlg)
-		self.eProv.setGeometry(QRect(110,110,200,20))
+		self.eProv.setGeometry(QRect(110,90,120,20))
 		self.eProv.setText('')
 
 		# ---- tolleranza ricerca ----
-		tmp = QLabel(self.dlg)
-		tmp.setGeometry(QRect(10,130,100,20))
-		tmp.setText('tolerance:')
+		#tmp = QLabel(self.dlg)
+		#tmp.setGeometry(QRect(10,130,120,20))
+		#tmp.setText('tolerance:')
 
-		self.eEps = QLineEdit(self.dlg)
-		self.eEps.setGeometry(QRect(110,130,100,20))
-		self.eEps.setText('')
+		#self.eEps = QLineEdit(self.dlg)
+		#self.eEps.setGeometry(QRect(110,130,120,20))
+		#self.eEps.setText('')
 
 		# inizializza le variabili
 		#self.new()
@@ -1926,10 +1933,10 @@ class topog4qgis:
 
 	def unload(self):
 		# rimuove i segnali attivati
-		if self.cLayer:	# potrebbero non esserci layer attivi
-			self.cLayer.removeSelection()
+		#if self.cLayer:	# potrebbero non esserci layer attivi
+			#self.cLayer.removeSelection()
 			# disconnect the layer changed handler
-			#self.iface.currentLayerChanged.disconnect()
+			#self.iface.currentLayerChanged.disconnect(self.currentLayerChanged)
 		# try to disconnect all signals
 		if self.isClickToolActivated:
 			self.clickTool.canvasClicked.disconnect()
@@ -1975,26 +1982,26 @@ class topog4qgis:
 			# registra il layer corrente
 			self.cLayer = self.iface.activeLayer()
 			self.eLay.setText(self.cLayer.name())
-			self.eLayEdit = self.cLayer.isEditable()
+			#self.eLayEdit = self.cLayer.isEditable()
 			# registra il provider
 			self.provider = self.cLayer.dataProvider()
 			self.eProv.setText(self.provider.name())           
 			# registra se è vettoriale
-			self.layGeom = self.cLayer.geometryType()
-			self.eType.setText(str(self.layGeom))
+			#self.layGeom = self.cLayer.type()
+			#self.eType.setText(str(self.layGeom))
 			# al cambio del layer stabilisce la tolleranza di ricerca
-			self.eps = self.canvas.mapUnitsPerPixel() * 5
-			self.eEps.setText("%7.2f" % (self.eps))
+			#self.eps = self.canvas.mapUnitsPerPixel() * 5
+			#self.eEps.setText("%7.2f" % (self.eps))
 		else:
 			self.cLayer = ''
 			self.eLay.setText('')
-			self.layGeom = ''
-			self.eLayEdit = ''
+			#self.layGeom = ''
+			#self.eLayEdit = ''
 			self.provider = ''
 			self.eProv.setText('')
-			self.eType.setText('')
-			self.eps = 0
-			self.eEps.setText('')
+			#self.eType.setText('')
+			#self.eps = 0
+			#self.eEps.setText('')
 
 	def newLayer(self,layType,layName,attrLst):
 		# create Point layer
@@ -2210,16 +2217,16 @@ class topog4qgis:
 			self.bDistPfRil.setEnabled(True)
 			self.bDistPfArch.setDisabled(True)
 			self.bStazList.setEnabled(True)
-			self.bStazVrt.setEnabled(True)
-			self.bVrtsStaz.setEnabled(True)
+			#self.bStazVrt.setEnabled(True)
+			#self.bVrtsStaz.setEnabled(True)
 			self.bMisurList.setEnabled(True)
 			self.bRibatList.setEnabled(True)
 			self.bNavPol.setEnabled(True)
 			self.bDistRid.setEnabled(True)
-			self.bRAP.setEnabled(True)
-			self.bPAP.setEnabled(True)
-			self.bRRP.setEnabled(True)
-			self.bPRP.setEnabled(True)
+			#self.bRAP.setEnabled(True)
+			#self.bPAP.setEnabled(True)
+			#self.bRRP.setEnabled(True)
+			#self.bPRP.setEnabled(True)
 		else:
 			self.iface.messageBar().pushMessage(
 				"importaLibretto",
@@ -2305,10 +2312,10 @@ class topog4qgis:
 			self.bDistPfUff.setEnabled(True)
 			self.bDistPfArch.setEnabled(True)
 			self.bVrtsPrtcEdm.setEnabled(True)
-			self.bRAP.setEnabled(True)
-			self.bPAP.setEnabled(True)
-			self.bRRP.setEnabled(True)
-			self.bPRP.setEnabled(True)
+			#self.bRAP.setEnabled(True)
+			#self.bPAP.setEnabled(True)
+			#self.bRRP.setEnabled(True)
+			#self.bPRP.setEnabled(True)
 		else:
 			self.iface.messageBar().pushMessage(
 				"openEDM",
@@ -2406,10 +2413,10 @@ class topog4qgis:
 				self.bGeoref.setEnabled(True)
 				self.bPfUff.setEnabled(True)
 				self.bDistPfUff.setEnabled(True)
-				self.bRAP.setEnabled(True)
-				self.bPAP.setEnabled(True)
-				self.bRRP.setEnabled(True)
-				self.bPRP.setEnabled(True)
+				#self.bRAP.setEnabled(True)
+				#self.bPAP.setEnabled(True)
+				#self.bRRP.setEnabled(True)
+				#self.bPRP.setEnabled(True)
 		else:
 			self.iface.messageBar().pushMessage(
 				"importaPfDaTaf",
@@ -2433,16 +2440,7 @@ class topog4qgis:
 				j2 = listaPf[i2]
 				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
 				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
-		# stampa
-		#print('%s %12.3f %12.3f' % (i0,x0,y0))
-		#print('%s %12.3f %12.3f' % (i1,x1,y1))
-		#print('%s %12.3f %12.3f' % (i2,x2,y2))
-		barPFcol = []
-		barPFcol.append((x0+x1+x2)/3)
-		barPFcol.append((y0+y1+y2)/3)
-		barPFcol.append(0)
-		print("baricentro PF collimati",barPFcol)
-        
+		# stampa     
 		#print('%s %12.3f %12.3f' % (i0,e0,n0))
 		#print('%s %12.3f %12.3f' % (i1,e1,n1))
 		#print('%s %12.3f %12.3f' % (i2,e2,n2))  
@@ -2450,7 +2448,16 @@ class topog4qgis:
 		barPFuff.append((e0+e1+e2)/3)
 		barPFuff.append((n0+n1+n2)/3)
 		barPFuff.append(0)
-		print("baricentro PF ufficiali",barPFuff)
+		print("baricentro PF (TAF)",barPFuff)
+        
+		#print('%s %12.3f %12.3f' % (i0,x0,y0))
+		#print('%s %12.3f %12.3f' % (i1,x1,y1))
+		#print('%s %12.3f %12.3f' % (i2,x2,y2))
+		barPFcol = []
+		barPFcol.append((x0+x1+x2)/3)
+		barPFcol.append((y0+y1+y2)/3)
+		barPFcol.append(0)
+		print("baricentro PF (collimati)",barPFcol)        
 
 		deltaX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
 		deltaY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
@@ -2584,6 +2591,7 @@ class topog4qgis:
 				# attiva il menu
 				self.bCollimList.setEnabled(True)
 				self.bErrPf.setEnabled(True)
+				self.bDistPf.setEnabled(True)
 				self.bBaric.setEnabled(True)                
 
 #	---------- validation functions --------------------
@@ -2595,6 +2603,10 @@ class topog4qgis:
 		"""
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
+		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
+			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
+				listaPf.append(pf[0])
+		print('Trovati i seguenti PF:',listaPf,'nel libretto')       
 		# --------- misurati --------
 		oldCds = []
 		for i in listaPf:
@@ -2605,17 +2617,40 @@ class topog4qgis:
 		for i in listaPf:
 			c,x,y,z = pointArchivioCds(self.edmPf,i)
 			newCds.append([x,y,0.0])
-		print("Coordinate PF ufficiali",newCds)
-		print('Errore nel rilievo dei PF (misurati):')
-		#print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
+		#print("Coordinate PF ufficiali",newCds)
+		print('Errore medio dei PF (misurati):')
+		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
 		# --------- collimati --------
 		oldCds = []
 		for i in listaPf:
 			c,x,y,z = pointArchivioCds(self.collimati,i)
 			oldCds.append([x,y,0.0])
-		print("Coordinate PF collimate",oldCds)
-		print('Errore nel rilievo dei PF (collimati):')
+		#print("Coordinate PF collimate",oldCds)
+		print('Errore medio dei PF (collimati):')
 		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
+        
+	def distanzePF(self): 
+		# controlla i PF misurati nel rilievo
+		listaPf = pfLista(self.libretto)
+		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
+			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
+				listaPf.append(pf[0])
+		print('Trovati i seguenti PF:',listaPf,'nel libretto')    
+		print('Stampa delle distanze tra PF')
+		for i0,p0 in enumerate(listaPf):
+			j,e0,n0,z = pointArchivioCds(self.edmPf,p0)
+			j,x0,y0,z = pointArchivioCds(self.collimati,p0)            
+			for i1 in range(i0+1,len(listaPf)):
+				p1 = listaPf[i1]
+				j,e1,n1,z = pointArchivioCds(self.edmPf,p1)
+				j,x1,y1,z = pointArchivioCds(self.collimati,p1)                
+				# stampa
+				dTAF = math.sqrt((e1-e0)**2+(n1-n0)**2)   
+				d = math.sqrt((x1-x0)**2+(y1-y0)**2)  
+				# stampa				
+				print('distanza tra %s e %s = %12.3f (TAF)' % (p0,p1,dTAF))
+				print('distanza tra %s e %s = %12.3f (collimati)' % (p0,p1,d))
+				print('---------------------------------')                        
 
 # --------- inquiry functions --------------------
 
@@ -2821,8 +2856,8 @@ class topog4qgis:
 	def stazioniSuVerticeTool(self):
 		if self.cLayer.name() in (self.layLibMisur.name(),self.layLibRibat.name()):
 			self.archivio = self.misurati + self.ribattuti
-#		elif self.cLayer.name() == self.layLibCollim .name():
-#				self.archivio = self.collimati
+		elif self.cLayer.name() == self.layLibCollim .name():
+				self.archivio = self.collimati
 		else:
 			self.iface.messageBar().pushMessage(
 				"stazioniSuVertice",
