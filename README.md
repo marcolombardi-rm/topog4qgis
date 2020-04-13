@@ -8,8 +8,7 @@ topo4qgis è un plugin per QGIS v.3.xx che consente il trattamento di rilievi ce
 Il plugin si occupa di
 - trattare i rilievi GPS (attualmente i rilievi misti TPS-GPS non sono gestiti)
 - trattare i rilievi celerimetrici eseguiti da diverse stazioni
-- verificare i punti ribattuti e
-- collegare, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente.
+- verificare i punti ribattuti e collegare, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente.
 
 La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilità di un estratto di mappa digitale (*.edm) o della tabella dei punti fiduciali (*.taf) consente di georiferire il rilievo nello spazio assoluto ufficiale.
 Nel rilievo possono essere trattati anche contorni di unità catastali (particelle, fabbricati, linee dividenti, ecc.).
