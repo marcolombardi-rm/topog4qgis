@@ -8,7 +8,8 @@
 	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 	i rilievi misti TPS+GPS necessitano di una routine specifica
 	aggiunta tra le funzioni la possibilità di verificare i baricentri tra i PF ufficiali e quelli misurati
-	adesso i libretti vengono rototraslati in modo baricentrico così da restituire un risultato più simile a Pre.Geo.
+	adesso i libretti vengono rototraslati in modo baricentrico così da restituire un risultato più simile a PreGeo
+	la rototraslazione viene effettuata anche su PF ricadenti su Fogli diversi da quello dell'oggetto del rilievo
 	rototraslazione separata in due routine diverse: una per rilievi TS e una per rilievi GPS
 2020-04-05
 	porting quasi totale del codice da QGIS2/PyQt4 a QGIS3/PyQt5
