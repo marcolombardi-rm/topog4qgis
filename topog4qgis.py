@@ -2348,14 +2348,35 @@ class topog4qgis:
 		pfList = pfLista(self.libretto)
 		if pfList:
 			lastfgCod = ""
+			n = 0
 			# legge file
 			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.taf')
-			for i in range(0,len(pfList)):
+			for i in range(-1,len(pfList)):
 				pfCod,fgCod,comCod = pfList[i].split('/')	# prende uno qualsiasi, il primo
 				fgCod = fgCod[0:-1]	# elimina ultimo carattere
+				try:
+					tmppfCod,nextfgCod,tmpcomCod = pfList[i+1].split('/')	# prende il prossimo                
+					nextfgCod = nextfgCod[0:-1]	# elimina ultimo carattere
+				except IndexError:
+					break                                       
+				#print("fgCod",fgCod)                    
 				#print("lastfgCod",lastfgCod)
-				if fgCod == lastfgCod:
-					break
+				#print("nextfgCod",nextfgCod)
+                #---
+				#if lastfgCod == "":
+				#	lastfgCod = fgCod
+				#	n = 1
+				#	print("sto qui 1", n)
+				#	continue                    
+                #---    
+				if nextfgCod == fgCod and fgCod == lastfgCod and n > 1:
+					#print("sto qui 2", n)
+					continue
+				else: n = n+1
+				if nextfgCod == fgCod and n > 1:
+					#print("sto qui 3", n)                
+					continue
+				else: n = n+1
 				print("Cerco i PF del Foglio",fgCod,"del Comune",comCod)
 				if fname[0] != "":
 					# legge file
@@ -2404,7 +2425,7 @@ class topog4qgis:
 					level=Qgis.Warning,
 					duration=4
 				)
-			# crea layer PF
+		# crea layer PF
 			if len(self.edmPf):
 				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmPf)
 				self.layEdmPf = self.cLayer
@@ -2442,18 +2463,18 @@ class topog4qgis:
 				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
 				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
 		# stampa     
-		print('%s %12.3f %12.3f' % (i0,e0,n0))
-		print('%s %12.3f %12.3f' % (i1,e1,n1))
-		print('%s %12.3f %12.3f' % (i2,e2,n2))  
+		#print('%s %12.3f %12.3f' % (i0,e0,n0))
+		#print('%s %12.3f %12.3f' % (i1,e1,n1))
+		#print('%s %12.3f %12.3f' % (i2,e2,n2))  
 		barPFuff = []
 		barPFuff.append((e0+e1+e2)/3)
 		barPFuff.append((n0+n1+n2)/3)
 		barPFuff.append(0)
 		print("baricentro PF (TAF)",barPFuff)
         
-		print('%s %12.3f %12.3f' % (i0,x0,y0))
-		print('%s %12.3f %12.3f' % (i1,x1,y1))
-		print('%s %12.3f %12.3f' % (i2,x2,y2))
+		#print('%s %12.3f %12.3f' % (i0,x0,y0))
+		#print('%s %12.3f %12.3f' % (i1,x1,y1))
+		#print('%s %12.3f %12.3f' % (i2,x2,y2))
 		barPFcol = []
 		barPFcol.append((x0+x1+x2)/3)
 		barPFcol.append((y0+y1+y2)/3)
