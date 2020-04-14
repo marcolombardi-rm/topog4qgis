@@ -27,6 +27,8 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
 
 # Import standard libraries
 import os,math,copy,functools,operator
+# Import codecs library
+import codecs
 
 # Import the PyQt and QGIS libraries
 from PyQt5 import QtCore, QtWidgets, QtGui
@@ -689,10 +691,19 @@ def geocentriche2topocentriche(X,Y,Z,X0,Y0,Z0):
 
 def loadFile(fname):
 	"""
-	Importa il file fname
+	Importa il file fname, se il file aperto con codec UTF-8 non è leggibile (a causa di caratteri accentati in relazione)
+	riprova ad aprirlo con codifica windows cp1252
 	"""
 	lib = []
 	f = open(fname, 'r')
+	try:
+		f.readline()
+	except:
+		f = codecs.open(fname, 'r', 'cp1252')
+	try:
+		f.readline()
+	except:
+		print('Errore nell\'aprire il file sono supportate le codifiche UTF-8 oppure CP-1252')
 	for data in f:
 		if '***** Relazione  Tecnica *****' in data:
 			break	# finisce la lettura
