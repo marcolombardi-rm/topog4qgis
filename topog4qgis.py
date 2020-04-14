@@ -343,7 +343,7 @@ def matrixMultiplication(mat1,mat2):
 		print ('matrici non congruenti per la moltiplicazione')
 		return -1
 
-def matRotoTrasla(s1,s2,d1,d2,angGeoref):
+def matRotoTrasla(s1,s2,d1,d2):
 	"""
 		matrice di collimazione a 2 punti
 		s1	vecchio centro
@@ -358,13 +358,14 @@ def matRotoTrasla(s1,s2,d1,d2,angGeoref):
 	d2x,d2y,d2z = d2
 	# calcola matrice di trasformazione
 	mat = matTranslation3D(-s1x,-s1y,-s1z)
-	if angGeoref == 0:
-		# ruota la linea s1-s2 sull'orizzontale
-		a1 = math.atan2(s2y-s1y,s2x-s1x)
-		# ruota per allinearla a d1-d2
-		a2 = math.atan2(d2y-d1y,d2x-d1x)
-		angGeoref = a2-a1
-	mat1 = matRotation3DinZ(angGeoref)
+#	print "dopo 1.a traslazione"
+#	printMatrix(mat)
+	# ruota la linea s1-s2 sull'orizzontale
+	a1 = math.atan2(s2y-s1y,s2x-s1x)
+	# ruota per allinearla a d1-d2
+	a2 = math.atan2(d2y-d1y,d2x-d1x)
+#	print "ruota di",a2-a1
+	mat1 = matRotation3DinZ(a2-a1)
 	mat = matrixMultiplication(mat1,mat)
 	#print("dopo rotazione")
 	#printMatrix(mat)
@@ -1207,7 +1208,7 @@ def allEsquad(archivio,allin):
 		z = 0.0
 		return [cod,x,y,z,note,staz,nRiga]
 
-def collimazione2PF(oldCds,newCds,archivio,angGeoref):
+def collimazione2PF(oldCds,newCds,archivio):
 	"""
 		esegue la georeferenzazione a due PF, il primo di centratura ed
 		il secondo di allineamento;
@@ -1223,7 +1224,7 @@ def collimazione2PF(oldCds,newCds,archivio,angGeoref):
 	newA = newCds[1] 
 #	print "allinea da",oldA,"a",newA
 	# esegue la rototraslazione (collimazione a 2 punti)
-	mat = matRotoTrasla(oldC,oldA,newC,newA,angGeoref)
+	mat = matRotoTrasla(oldC,oldA,newC,newA)
 #	print "matrice di rototraslazione"
 #	printMatrix(mat)
 	archivio = trasformaPunti3D(archivio,mat)	# non si può usare matrixMultiplication() perchè ci sono altri elementi da conservare
@@ -2441,18 +2442,18 @@ class topog4qgis:
 				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
 				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
 		# stampa     
-		#print('%s %12.3f %12.3f' % (i0,e0,n0))
-		#print('%s %12.3f %12.3f' % (i1,e1,n1))
-		#print('%s %12.3f %12.3f' % (i2,e2,n2))  
+		print('%s %12.3f %12.3f' % (i0,e0,n0))
+		print('%s %12.3f %12.3f' % (i1,e1,n1))
+		print('%s %12.3f %12.3f' % (i2,e2,n2))  
 		barPFuff = []
 		barPFuff.append((e0+e1+e2)/3)
 		barPFuff.append((n0+n1+n2)/3)
 		barPFuff.append(0)
 		print("baricentro PF (TAF)",barPFuff)
         
-		#print('%s %12.3f %12.3f' % (i0,x0,y0))
-		#print('%s %12.3f %12.3f' % (i1,x1,y1))
-		#print('%s %12.3f %12.3f' % (i2,x2,y2))
+		print('%s %12.3f %12.3f' % (i0,x0,y0))
+		print('%s %12.3f %12.3f' % (i1,x1,y1))
+		print('%s %12.3f %12.3f' % (i2,x2,y2))
 		barPFcol = []
 		barPFcol.append((x0+x1+x2)/3)
 		barPFcol.append((y0+y1+y2)/3)
@@ -2472,34 +2473,8 @@ class topog4qgis:
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
 		"""
+		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
-		for line in self.libretto:
-			tmp = line.split('|')
-			if tmp[0] == '1':
-				if ',' not in tmp[2]:
-					print("trattasi di libretto celerimetrico")
-					for i0,j0 in enumerate(listaPf):
-						p,x0,y0,z = pointArchivioCds(self.misurati,j0)
-						p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
-						for i1 in range(i0,1):
-							j1 = listaPf[i1]
-							p,x1,y1,z = pointArchivioCds(self.misurati,j1)
-							p,e1,n1,z = pointArchivioCds(self.edmPf,j1)                    
-                			# stampa
-					print('%s %12.3f %12.3f' % (i0,x0,y0))
-					print('%s %12.3f %12.3f' % (i1,x1,y1))
-					m1=float((y1-y0)/(x1-x0))
-					#print("coefficiente angolare m1",m1) 
-					print('%s %12.3f %12.3f' % (i0,e0,n0))
-					print('%s %12.3f %12.3f' % (i1,e1,n1))
-					m2=float((n1-n0)/(e1-e0))
-					#print("coefficiente angolare m2",m2)
-					angGeoref = math.atan2((m1-m2),(1+(m1*m2)))
-				else:
-					print("trattasi di libretto gps")        
-					angGeoref = 0
-					break
-		#print("ruota di",angGeoref)        
 		print("Rilevati i PF",listaPf)
 		if len(listaPf) < 2:
 			self.iface.messageBar().pushMessage(
@@ -2508,22 +2483,22 @@ class topog4qgis:
 				level=Qgis.Warning,
 				duration=3
 			)
-		else:   
+		else:
 			# carica le coordinate origine
 			oldCds = []
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.misurati,i)
 				oldCds.append([x,y,z])
-			#print("coordinate origine",oldCds)
+#			print "coordinate origine",oldCds
 			# ... e quelle di destinazione
 			newCds = []
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.edmPf,i)
 				newCds.append([x,y,z])
-			#print("coordinate destinazione",newCds)
+#			print "coordinate destinazione",newCds
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
-			nM = len(self.misurati)      
-			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti,angGeoref)
+			nM = len(self.misurati)
+			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti)
 			self.misurati = tmp[0:nM]
 			self.ribattuti = tmp[nM:]
 			# cancella i layer dei misurati e ribattuti
@@ -2540,9 +2515,9 @@ class topog4qgis:
 			self.layLibRibat = self.cLayer
 			self.cLayer.setLabelsEnabled(True)
 			print('Layer vertici ribattuti completato')
-#			self.creaLineLayer('Rilievo_contorni_misurati',self.RilCtrn,self.RilSty,self.misurati)
+#			self.creaLineLayer('Rilievo_contorni',self.RilCtrn,self.RilSty,self.misurati)
 #			self.layLibCtrn = self.cLayer
-			# ------ attiva la simbologia categorizzata per i contorni -------
+#			# ------ attiva la simbologia categorizzata per i contorni -------
 #			myRen = catSymbol(
 #				self.cLayer.geometryType(),
 #				'TRATTO',
@@ -2557,19 +2532,14 @@ class topog4qgis:
 			# NB: ricordare che in caso di mancata collimazione a 3 PF
 			#      i collimati coincidono con i misurati	
 			if len(listaPf) >= 3:
-				barPFcol, barPFuff, deltaX, deltaY = self.baricentro()
+				barPFcol,barPFuff, deltaX, deltaY = self.baricentro()
 				self.collimati = copy.deepcopy(self.misurati)
 				# ricarica le coordinate origine
-				#print(barPFcol, barPFuff)                
 				oldCds = []
 				for i in listaPf:
 					c,x,y,z = pointArchivioCds(self.collimati,i)
 					oldCds.append([x+deltaX,y+deltaY,z])
-				#print("3pf coordinate origine",oldCds)
-				newCds = []
-				for i in listaPf:
-					c,x,y,z = pointArchivioCds(self.edmPf,i)
-					newCds.append([x+deltaX,y+deltaY,z])                
+#				print "coordinate origine",oldCds
 				self.collimati = collimazione3PF(oldCds,newCds,self.collimati)
 				# crea layer vertici collimati
 				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
@@ -2587,12 +2557,11 @@ class topog4qgis:
 						['RC','#ff0000','rosso continuo']
 					]
 				)
-				self.cLayer.setRenderer(myRen)                
-				# attiva il menu
+				self.cLayer.setRenderer(myRen)               
 				self.bCollimList.setEnabled(True)
 				self.bErrPf.setEnabled(True)
 				self.bDistPf.setEnabled(True)
-				self.bBaric.setEnabled(True)                
+				self.bBaric.setEnabled(True) 
 
 #	---------- validation functions --------------------
 
