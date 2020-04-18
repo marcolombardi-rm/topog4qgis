@@ -1,7 +1,7 @@
 [general]
 name=topog4qgis
 qgisMinimumVersion=3.0
-description= Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo). | Il tool permette di importare libretti in formato Pregeo (.dat) e di elaborarli per la visualizzazione su QGis3. 
+description= Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo) | Il tool permette di importare libretti in formato Pregeo (.dat) e di elaborarli per la visualizzazione su QGIS 3.xx
 version=version 0.1
 author=Marco Lombardi (contributor and actual maintainer)
 email=marco.lombardi.rm@gmail.com
