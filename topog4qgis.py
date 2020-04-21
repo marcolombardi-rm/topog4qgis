@@ -698,10 +698,6 @@ def loadFile(fname):
 		f.readline()
 	except:
 		f = codecs.open(fname, 'r', 'cp1252')
-	try:
-		f.readline()
-	except:
-		print('Errore nell\'aprire il file sono supportate le codifiche UTF-8 oppure CP-1252')
 	for data in f:
 		if '***** Relazione  Tecnica *****' in data:
 			break	# finisce la lettura
@@ -709,7 +705,7 @@ def loadFile(fname):
 		data = data.rstrip('\n')
 		data = data.rstrip('\r')
 		lib.append(data)
-	f.close()
+	print(f.readline())    
 	return lib
 
 def openLibretto_vertici(libretto):
@@ -915,6 +911,7 @@ def openEDM_vertici(file):
 				note = 'EdM-'+str(pnt)
 				# controllare numerazione di pregeo
 				lut.append([pnt,float(tmp[3]),float(tmp[2]),0])	# NB: mette prima Nord e poi Est
+	#print(lut)
 	return lut
 
 # ------- inquiry/report functions ---------
@@ -1704,8 +1701,8 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-
-#		-------- file menubar ------------
+		self.dlg.setWindowTitle("topog4qgis v0.1")
+        # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
 
@@ -2294,7 +2291,7 @@ class topog4qgis:
 			# queste sono superflue, possono servire solo alla numerazione dei vertici
 			if len(self.edmVrts):
 				self.creaPointLayer('EdM_vertici',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmVrts)
-				print('Layer vertici particella completato')
+				print('Layer vertici particella completato')             
 				#child0 = root.children()[0]
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
@@ -2309,6 +2306,7 @@ class topog4qgis:
 				myRen = singleSymbol(self.cLayer.geometryType(),'#000000')
 				#verificare self.cLayer.setRenderer(myRen)
 				print('Layer contorni particella completato')
+				#print(EdmPrtc)
 				#child0 = root.children()[0]
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
