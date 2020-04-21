@@ -704,8 +704,7 @@ def loadFile(fname):
 		# pulisce la riga
 		data = data.rstrip('\n')
 		data = data.rstrip('\r')
-		lib.append(data)
-	print(f.readline())    
+		lib.append(data)    
 	return lib
 
 def openLibretto_vertici(libretto):
