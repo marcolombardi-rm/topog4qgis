@@ -12,7 +12,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         
         updated on           : 2020-04-29
         maintainer           : Marco Lombardi
-        email                : giulianc51@gmail.com
+        email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
 
 /***************************************************************************
