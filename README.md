@@ -1,4 +1,4 @@
-topog4qgis
+topog4qgis v0.2
 ==========
 VERSIONE ITALIANA
 =================
@@ -7,7 +7,7 @@ Plugin QGis per la trattazione di libretti PreGeo (atti di aggiornamento catasta
 topo4qgis è un plugin per QGIS v.3.xx che consente il trattamento di rilievi celerimetrici con strumentazione ottico-digitale (teodolite, teodolite + distanziometro, stazione totale, ecc.) o con strumentazione gps.
 Il plugin si occupa di
 - trattare i rilievi celerimetrici eseguiti da diverse stazioni, 
-- trattare i rilievi GPS e rilievi misti TPS-GPS
+- trattare i rilievi GPS e rilievi misti TPS-GPS (sperimentale dalla versione 0.2),
 - verificare i punti ribattuti e collegare, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente.
 
 La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilità di un estratto di mappa digitale (*.edm) o della tabella dei punti fiduciali (*.taf) consente di georiferire il rilievo nello spazio assoluto ufficiale.
