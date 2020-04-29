@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-04-05
+        updated on           : 2020-04-29
         maintainer           : Marco Lombardi
         email                : giulianc51@gmail.com
  ***************************************************************************/
@@ -168,7 +168,16 @@ def catSymbol(geoTyp,attName,cats):
 	# parsing delle categorie
 	for i in cats:
 		name,namCol,lab = i
-		symb = QgsSymbol.defaultSymbol(geoTyp)
+		if name == 'NT':
+			symb = QgsLineSymbol.createSimple({'line_style': 'dash', 'color': 'black'})
+		elif name == 'RT':
+			symb = QgsLineSymbol.createSimple({'line_style': 'dash', 'color': 'red'})
+		elif name == 'RP':
+			symb = QgsLineSymbol.createSimple({'line_style': 'dot', 'color': 'red'}) 
+		elif name == 'NP':
+			symb = QgsLineSymbol.createSimple({'line_style': 'dot', 'color': 'black'})             
+		else:
+			symb = QgsSymbol.defaultSymbol(geoTyp)
 		col = symb.color()
 		col.setNamedColor(namCol)
 		symb.setColor(col)
@@ -377,7 +386,7 @@ def matRotoTrasla(s1,s2,d1,d2):
 	#printMatrix(mat)
 	return mat
     
-def matRotoTraslaTS(s1,s2,d1,d2):
+def matRotoTraslaTS(s1,s2,d1,d2,ang):
 	"""
 		matrice di collimazione a 2 punti
 		s1	vecchio centro
@@ -395,13 +404,13 @@ def matRotoTraslaTS(s1,s2,d1,d2):
 	#print("dopo 1.a traslazione")
 	#printMatrix(mat)
 	# ruota la linea s1-s2 sull'orizzontale
-	a1 = math.atan2(s2y-s1y,s2x-s1x)
+	#a1 = math.atan2(s2y-s1y,s2x-s1x)
 	# ruota per allinearla a d1-d2
-	a2 = math.atan2(d2y-d1y,d2x-d1x)
+	#a2 = math.atan2(d2y-d1y,d2x-d1x)
 	#print("ruota di a2-a1=",0)
 	#print("a2=",a2)
 	#print("a1=",a1)
-	mat1 = matRotation3DinZ(0)
+	mat1 = matRotation3DinZ(ang)
 	mat = matrixMultiplication(mat1,mat)
 	#print("dopo rotazione")
 	#printMatrix(mat)
@@ -857,21 +866,25 @@ def openLibretto_contorni(file):
 			num = int(tmp.pop(0))
 			# setta il contatore dei vertici se è una riga nuova
 			if num:
-				nv = num
+				nv = num  
 			# definisce il numero max di vertici della riga
 			k = min(10,nv)
 			# li parcheggia in tmp2
-			for v in tmp[0:k]:
-				tmp2.append(v)
+			for v in tmp[0:k]:   
+				if (v != 'RC' and v != 'RT' and v != 'NC' and v != 'NT' and v != 'RP' and v != 'NP'): 
+					tmp2.append(v)
+				else:
+					k = k -1                        		
+			#print("nv=",nv,"num=",num,"tmp2=",tmp2)	
 			tmpSty = tmp[k]
 			# aggiorna il contatore dei vertici
 			nv -= k
-#			print "nv=",nv,"num=",num,"tmp2=",tmp2
 			# se è finito il contorno trasferisce nelle liste
 			if nv == 0:
 				ctrn.append(tmp2)
 				style.append(tmpSty)
-				tmp2 = []
+				#print(tmpSty)
+				tmp2 = []		            
 	# elimina il segno percentuale ove necessario
 	for k in ctrn:
 		for i,v in enumerate(k):
@@ -949,8 +962,8 @@ def stazioniLista(libretto):
 				list.append(tmp[1])                
 			else:
 				list.append('')
-				print("trattasi di libretto gps")
-	print("trattasi di libretto celerimetrico")
+				#print("trattasi di libretto gps")
+	#print("trattasi di libretto celerimetrico")
 	return list
 
 def lettureFraStazioni(libretto):
@@ -980,6 +993,21 @@ def lettureFraStazioni(libretto):
 #				print s0,tmp1[1]
 				lst.append([s0,tmp1[1]])
 	return lst
+
+def osservazioniCelerimetriche(libretto):
+	#print('cerco le stazioni')
+	stazList = stazioniLista(libretto)
+	# cerca le lettura fra stazioni
+	lst = []
+	for s0 in stazList:
+		for k,l0 in enumerate(libretto):
+			tmp0 = l0.split("|")
+			if tmp0[0] == '1' and tmp0[1] == s0:
+				for j in range(k+1,len(libretto)):
+					l1 = libretto[j]
+					tmp1 = l1.split("|")
+					if tmp1[0] == '2':
+						print('Stazione',s0,'->',l1)
 
 def distanzeRidotte(archivio,a_giro):
 	"""
@@ -1118,7 +1146,7 @@ def rect2polar(x,y,z,x0,y0,z0,a_giro):
 	d = math.sqrt(dr**2+dz**2)
 	return ah,av,d
 
-def collimazioneStazione(rilievo,archivio):
+def collimazioneStazione(rilievo,archivio,tipologia):
 	"""
 		Esegue la trasformazione di punti in modo che i punti sorgenti [srcList]
 		vadano a collimare con i destinatari [destList].
@@ -1138,9 +1166,21 @@ def collimazioneStazione(rilievo,archivio):
 		questo metodo però non funziona quando c'è una baseline gps, pertanto quando non trova
 		la stazione mirante fra i punti della stazione, prende il primo punto ribattuto;
 	"""
-#	print "collimazione: ricevo archivio",archivio,"rilievo",rilievo
+	az_xy = 0
+	az_en = 0
+	xa = 0
+	ya = 0
+	xb = 0
+	yb = 0
+	ea = 0
+	na = 0
+	eb = 0
+	nb = 0
+	ang = 0
+	cod = ""
+	#print("collimazione: ricevo archivio",archivio,"rilievo",rilievo)
 	collimati = []
-	# controlla se la stazione è giÃ stata osservata
+	# controlla se la stazione è già stata osservata
 	newStaz = rilievo[0][0]
 	s1 = [0,0,0]
 #	print "nuova stazione",newStaz,"dalla posizione",0,0,0
@@ -1159,25 +1199,97 @@ def collimazioneStazione(rilievo,archivio):
 				d2 = [x,y,z]
 #				print "alla posizione",x,y,z
 				# matrice di trasformazione
-				mat = matRotoTraslaTS(s1,s2,d1,d2)
+				if tipologia == 2:
+					for k in archivio:
+						if newStaz == k[0]:
+							#print("trovato il punto stazione in archivio",newStaz)
+							#print('trovata',k)
+							xa = k[1]
+							ya = k[2]
+							#break
+					for k in rilievo:
+						if newStaz == k[0]:
+							#print("trovato il punto stazione in rilievo",newStaz)
+							#print('trovata',k)
+							ea = k[1]
+							na = k[2]
+							#break
+					for k in archivio:		
+						if cod == k[0]:
+							#print("trovato il punto orientamento in archivio",cod)
+							#print('trovata',k)
+							xb = k[1]
+							yb = k[2]
+							#break
+					for k in rilievo:		
+						if cod == k[0]:
+							#print("trovato il punto orientamento in rilievo",cod)
+							#print('trovata',k)
+							eb = k[1]
+							nb = k[2]
+							#break
+					az_xy = math.atan2((xb-xa),(yb-ya))
+					az_en = math.atan2((eb-ea),(nb-na))
+					#print('az_xy',az_xy)
+					#print('az_en',az_en)
+					ang = az_en - az_xy
+					#print('az_en - az_xy',ang)
+					#print(ang)
+				mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
 #				print "matrice di trasformazione",mat
 				collimati = trasformaPunti3D(rilievo,mat)
 			else:
 				print('la stazione mirante non è in archivio (questo errore non si dovrebbe MAI verificare)')
 		else:
-			print('la stazione mirante',prevStaz,'non è stata osservata dalla stazione',newStaz) 
-			print('cerchiamo il primo punto ribattuto')
+			#print('la stazione mirante',prevStaz,'non è stata osservata dalla stazione',newStaz) 
+			#print('cerchiamo il primo punto ribattuto')
 			for i in range(1,len(rilievo)):
 				cod = rilievo[i][0]
 				for k in archivio:
 					if cod == k[0]:
-#						print "trovato il punto ribattuto",cod
+						#print("trovato il punto ribattuto",cod)
 						pos,x,y,z = pointArchivioCds(rilievo,i)
 						s2 = [x,y,z]
 						pos,x,y,z = pointArchivioCds(archivio,k)
 						d2 = [x,y,z]
+						if tipologia == 2:
+							for k in archivio:
+								if newStaz == k[0]:
+									#print("trovato il punto stazione in archivio",newStaz)
+									#print('trovata',k)
+									xa = k[1]
+									ya = k[2]
+									#break
+							for k in rilievo:
+								if newStaz == k[0]:
+									#print("trovato il punto stazione in rilievo",newStaz)
+									#print('trovata',k)
+									ea = k[1]
+									na = k[2]
+									#break
+							for k in archivio:		
+								if cod == k[0]:
+									#print("trovato il punto orientamento in archivio",cod)
+									#print('trovata',k)
+									xb = k[1]
+									yb = k[2]
+									#break
+							for k in rilievo:		
+								if cod == k[0]:
+									#print("trovato il punto orientamento in rilievo",cod)
+									#print('trovata',k)
+									eb = k[1]
+									nb = k[2]
+									#break
+							az_xy = math.atan2((xb-xa),(yb-ya))
+							az_en = math.atan2((eb-ea),(nb-na))
+							#print('az_xy',az_xy)
+							#print('az_en',az_en)
+							ang = az_en - az_xy
+							#print('az_en - az_xy',ang)
+							#print(ang)
 						# matrice di trasformazione
-						mat = matRotoTraslaTS(s1,s2,d1,d2)
+						mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
 #						print "matrice di trasformazione",mat
 						collimati = trasformaPunti3D(rilievo,mat)	# si può usare matrixMultiplication()
 						break
@@ -1595,8 +1707,8 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.1'
-	build_date = '2020-05-04'
+	vers = '0.2'
+	build_date = '2020-29-04'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -1700,7 +1812,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.1")
+		self.dlg.setWindowTitle("topog4qgis v0.2")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -1795,6 +1907,16 @@ class topog4qgis:
 		mInquiry.addAction(self.bVrtsPrtcEdm)
 		self.bVrtsPrtcEdm.setDisabled(True)
 
+		self.bMisurList = QAction(QIcon(''),'Elenco misurati',self.dlg)        
+		self.bMisurList.triggered.connect(self.elencoMisurati)
+		mInquiry.addAction(self.bMisurList)
+		self.bMisurList.setDisabled(True)
+
+		self.bCollimList = QAction(QIcon(''),'Elenco collimati',self.dlg)        
+		self.bCollimList.triggered.connect(self.elencoCollimati)
+		mInquiry.addAction(self.bCollimList)
+		self.bCollimList.setDisabled(True)
+		
 		self.bStazList = QAction(QIcon(''),'Elenco stazioni',self.dlg)        
 		self.bStazList.triggered.connect(self.elencoStazioni)
 		mInquiry.addAction(self.bStazList)
@@ -1810,16 +1932,6 @@ class topog4qgis:
 		#mInquiry.addAction(self.bVrtsStaz)
 		#self.bVrtsStaz.setDisabled(True)
 
-		self.bMisurList = QAction(QIcon(''),'Elenco misurati',self.dlg)        
-		self.bMisurList.triggered.connect(self.elencoMisurati)
-		mInquiry.addAction(self.bMisurList)
-		self.bMisurList.setDisabled(True)
-
-		self.bCollimList = QAction(QIcon(''),'Elenco collimati',self.dlg)        
-		self.bCollimList.triggered.connect(self.elencoCollimati)
-		mInquiry.addAction(self.bCollimList)
-		self.bCollimList.setDisabled(True)
-
 		self.bRibatList = QAction(QIcon(''),'Elenco ribattuti',self.dlg)        
 		self.bRibatList.triggered.connect(self.elencoRibattuti)
 		mInquiry.addAction(self.bRibatList)
@@ -1834,6 +1946,11 @@ class topog4qgis:
 		self.bDistRid.triggered.connect(self.elencoDistRidotte)
 		mInquiry.addAction(self.bDistRid)
 		self.bDistRid.setDisabled(True)
+
+		self.bOssCeler = QAction(QIcon(''),'Elenco osservazioni celerimetriche',self.dlg)        
+		self.bOssCeler.triggered.connect(self.elencoOssCeler)
+		mInquiry.addAction(self.bOssCeler)
+		self.bOssCeler.setDisabled(True)
 
 		#self.bRAP = QAction(QIcon(''),'Rectangular absolute position',self.dlg)        
 		#self.bRAP.triggered.connect(self.rectAbsPosTool)
@@ -2109,6 +2226,8 @@ class topog4qgis:
 		# ---------- carica il libretto delle misure -----------
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.dat')
 		if fname[0] != "":
+			isCel = False
+			isGps = False
 			self.libretto = loadFile(fname[0])
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
@@ -2134,15 +2253,25 @@ class topog4qgis:
 				for g in tmp:
 					rilievo.append(g)
 				isFirst = False	# azzera il flag
+				isGps = True
 			else:
 				isFirst = True
+				isGps = False
 			# ----- elaborazione celerimetriche ---------
+			if RilVrts:
+				isCel = True
+			if isGps == True and isCel == False:
+				tipologia = 0 #gps
+			elif isGps == False and isCel == True:
+				tipologia = 1 #tps
+			elif isGps == True and isCel == True:
+				tipologia = 2 #misto
 			for s in RilVrts:
 				# conversione in coordinate rettangolari
 				tmp = polar2rect(s,self.a_giro)
 				if not isFirst:
 					# collimazione (tranne la prima stazione)
-					tmp = collimazioneStazione(tmp,rilievo)
+					tmp = collimazioneStazione(tmp,rilievo,tipologia)
 # occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti
 				isFirst = False
 				if len(tmp):
@@ -2190,13 +2319,13 @@ class topog4qgis:
 			else:
 				print("non ci sono vertici misurati nel libretto")
 			# crea layer dei ribattuti
-			if len(self.ribattuti):
-				self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
-				self.layLibRibat = self.cLayer
-				self.cLayer.setLabelsEnabled(True)                
-				print("Layer vertici ribattuti completato")
-			else:
-				print("non ci sono vertici ribattuti nel libretto")
+			#if len(self.ribattuti):
+			#	self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
+			#	self.layLibRibat = self.cLayer
+			#	self.cLayer.setLabelsEnabled(True)                
+			#	print("Layer vertici ribattuti completato")
+			#else:
+			#	print("non ci sono vertici ribattuti nel libretto")
 			# crea layer contorni
 			if len(self.RilCtrn):
 				self.creaLineLayer('Rilievo_contorni',self.RilCtrn,self.RilSty,self.misurati)
@@ -2207,10 +2336,14 @@ class topog4qgis:
 					'TRATTO',
 					[
 						['NC','#000000','nero continuo'],
-						['RC','#ff0000','rosso continuo']
+						['RC','#ff0000','rosso continuo'],
+						['NT','#000000','nero tratteggiato'],
+						['RT','#ff0000','rosso tratteggiato'],
+						['NP','#000000','nero puntinato'],
+						['RP','#ff0000','rosso puntinato']                       
 					]
 				)
-				#verificare self.cLayer.setRenderer(myRen)
+				self.cLayer.setRenderer(myRen)
 				print("Layer contorni libretto completati")
 			else:
 				print("non ci sono contorni nel libretto")
@@ -2222,13 +2355,32 @@ class topog4qgis:
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
 			self.bDistPfArch.setDisabled(True)
-			self.bStazList.setEnabled(True)
+			self.bMisurList.setEnabled(True)
+			if isGps == True:
+				self.bStazList.setDisabled(True)
+			else:
+				self.bStazList.setEnabled(True)
 			#self.bStazVrt.setEnabled(True)
 			#self.bVrtsStaz.setEnabled(True)
-			self.bMisurList.setEnabled(True)
-			self.bRibatList.setEnabled(True)
-			self.bNavPol.setEnabled(True)
-			self.bDistRid.setEnabled(True)
+			if isGps == True:
+				self.bCollimList.setDisabled(True)
+				self.bRibatList.setDisabled(True)
+				self.bNavPol.setDisabled(True)
+				self.bDistRid.setDisabled(True)
+				self.bOssCeler.setDisabled(True)
+			else:
+				self.bCollimList.setDisabled(True)
+				self.bRibatList.setEnabled(True)
+				self.bNavPol.setEnabled(True)
+				self.bDistRid.setEnabled(True)
+				self.bOssCeler.setEnabled(True)
+			if isGps == True and isCel == True:
+				self.bCollimList.setDisabled(True)
+				self.bRibatList.setEnabled(True)
+				self.bNavPol.setEnabled(True)
+				self.bDistRid.setEnabled(True)
+				self.bOssCeler.setEnabled(True)
+				self.bStazList.setEnabled(True)
 			#self.bRAP.setEnabled(True)
 			#self.bPAP.setEnabled(True)
 			#self.bRRP.setEnabled(True)
@@ -2538,20 +2690,24 @@ class topog4qgis:
 #			self.layLibMisur = self.cLayer
 #			self.cLayer.setLabelsEnabled(True)
 #			print('Layer vertici misurati completato')
-			self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
-			self.layLibRibat = self.cLayer
-			self.cLayer.setLabelsEnabled(True)
-			print('Layer vertici ribattuti completato')
+#			self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
+#			self.layLibRibat = self.cLayer
+#			self.cLayer.setLabelsEnabled(True)
+#			print('Layer vertici ribattuti completato')
 #			self.creaLineLayer('Rilievo_contorni',self.RilCtrn,self.RilSty,self.misurati)
 #			self.layLibCtrn = self.cLayer
 #			# ------ attiva la simbologia categorizzata per i contorni -------
 #			myRen = catSymbol(
 #				self.cLayer.geometryType(),
 #				'TRATTO',
-#				[
-#					['NC','#000000','nero continuo'],
-#					['RC','#ff0000','rosso continuo']
-#				]
+#					[
+#						['NC','#000000','nero continuo'],
+#						['RC','#ff0000','rosso continuo'],
+#						['NT','#000000','nero tratteggiato'],
+#						['RT','#ff0000','rosso tratteggiato'],
+#						['NP','#000000','nero puntinato'],
+#						['RP','#ff0000','rosso puntinato']                       
+#					]
 #			)
 #			self.cLayer.setRenderer(myRen)
 #			print('Layer contorni libretto completati')
@@ -2581,7 +2737,11 @@ class topog4qgis:
 					'TRATTO',
 					[
 						['NC','#000000','nero continuo'],
-						['RC','#ff0000','rosso continuo']
+						['RC','#ff0000','rosso continuo'],
+						['NT','#000000','nero tratteggiato'],
+						['RT','#ff0000','rosso tratteggiato'],
+						['NP','#000000','nero puntinato'],
+						['RP','#ff0000','rosso puntinato']                       
 					]
 				)
 				self.cLayer.setRenderer(myRen)               
@@ -2848,6 +3008,10 @@ class topog4qgis:
 	def elencoStazioni(self):
 		print('Elenco delle stazioni del rilievo')
 		printList(stazioniLista(self.libretto))
+
+	def elencoOssCeler(self):
+		print('Elenco delle osservazioni celerimetriche')
+		osservazioniCelerimetriche(self.libretto)	
 
 	def stazioniSuVerticeTool(self):
 		if self.cLayer.name() in (self.layLibMisur.name(),self.layLibRibat.name()):
