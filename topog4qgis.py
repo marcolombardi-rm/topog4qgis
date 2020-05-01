@@ -694,6 +694,18 @@ def geocentriche2topocentriche(X,Y,Z,X0,Y0,Z0):
 	V = -(X-X0)*math.sin(lat0)*math.cos(lon0) - (Y-Y0)*math.sin(lat0)*math.sin(lon0) + (Z-Z0)*math.cos(lat0) 
 	W = (X-X0)*math.cos(lat0)*math.cos(lon0) + (Y-Y0)*math.cos(lat0)*math.sin(lon0) + (Z-Z0)*math.sin(lat0)
 	return U,V,W
+    
+def topocentriche2geocentriche(U,V,W,X0,Y0,Z0):
+	"""
+		topocentric to geocentric
+		(controllata con EPSG Guide 7-2 pag.98)
+	"""
+	lon0,lat0,h0 = geocentriche2wgs84(X0,Y0,Z0)
+#	print lon0,lat0
+	X = (X0) - (U)*math.sin(lon0) - (V)*math.sin(lat0)*math.cos(lon0) + (W)*math.cos(lat0)*math.cos(lon0)
+	Y = (Y0) + (U)*math.cos(lon0) - (V)*math.sin(lat0)*math.sin(lon0) + (W)*math.cos(lat0)*math.sin(lon0) 
+	Z = (Z0) + (V)*math.cos(lat0) + (W)*math.sin(lat0)
+	return X,Y,Z    
 
 # ----- I/O functions -------------------
 
@@ -1104,7 +1116,7 @@ def polar2rect(rilievo,a_giro):
 		cod = punto[0]
 		x,y,z = 0.0,0.0,0.0
 		nRiga = punto[-1]
-		if len(punto) == 8:	# punto dotato di altimetria
+		if len(punto) == 8 or len(punto) == 7:	# punto dotato di altimetria
 			# converte zenith in radianti
 			av = toRad(float(punto[2]),a_giro)
 			av -= 3*math.pi/2		# NB: ricordare angolo nullo allo zenith
@@ -1114,14 +1126,17 @@ def polar2rect(rilievo,a_giro):
 			# altitudine
 			hp = float(punto[4])
 			z = (hs + d*math.sin(av) - hp)
-			nota = punto[5]
-		elif len(punto) == 6:	# punto senza altimetria (NB: c'Ã¨ sempre un campo vuoto alla fine)
+			if len(punto) == 8:			
+				nota = punto[5]
+			elif len(punto) == 7:
+				nota = ""                 
+		if len(punto) == 6:	# punto senza altimetria (NB: c'è sempre un campo vuoto alla fine)
 			dr = float(punto[2])
 			nota = punto[3]
-		else:
-			dr = 0.0	# dovrebbe mettere tutto a zero
-			nota = 'polar2rect: numero di parametri non compatibili'
-			stazDiMira = 0
+		#else:
+		#	dr = 0.0	# dovrebbe mettere tutto a zero
+		#	nota = 'polar2rect: numero di parametri non compatibili'
+		#	stazDiMira = 0
 		# converte azimuth in radianti
 		ah = toRad(-float(punto[1]),a_giro)
 		# coordinate rettangolari nel piano orizzontale
@@ -1741,6 +1756,7 @@ class topog4qgis:
 		self.layLibMisur = '' # layer vertici rilievo (misurati)
 		self.layLibRibat = '' # layer vertici rilievo (ribattuti)
 		self.layLibCollim = '' # layer vertici rilievo (collimati)
+		self.layLibCollimWGS84 = '' # layer vertici rilievo (collimati su WGS84)        
 		self.layLibCtrn = '' # layer contorni rilievo
 		self.layEdmPf = ''	# layer punti fiduciali
 		self.layEdmVrts = ''	# layer vertici dell'EdM
@@ -1760,7 +1776,7 @@ class topog4qgis:
 		self.bImpEDM.setEnabled(True)
 		self.bImpLib.setEnabled(True)
 		self.bPfTaf.setDisabled(True)
-		self.bViewLib.setDisabled(True)
+		self.bViewLib.setEnabled(True)
 		self.bPfRil.setDisabled(True)
 		self.bDistPfRil.setDisabled(True)
 		self.bVrtsPrtcEdm.setDisabled(True)
@@ -1850,6 +1866,11 @@ class topog4qgis:
 		self.bGeoref.triggered.connect(self.georeferencer)
 		mGeoref.addAction(self.bGeoref)
 		self.bGeoref.setDisabled(True)
+        
+		self.bGeorefWGS84 = QAction(QIcon(''),'Georeferenzia su WGS84(EPSG:4326)',self.dlg)        
+		self.bGeorefWGS84.triggered.connect(self.georeferWGS84)
+		mGeoref.addAction(self.bGeorefWGS84)
+		self.bGeorefWGS84.setDisabled(True)        
 
 		# -------- validation menu -------------
 		mValid = mb.addMenu('Calcoli')
@@ -2351,13 +2372,14 @@ class topog4qgis:
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
 			self.bPfTaf.setEnabled(True)
-			self.bViewLib.setDisabled(True)
+			self.bViewLib.setEnabled(True)
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
 			self.bDistPfArch.setDisabled(True)
 			self.bMisurList.setEnabled(True)
 			if isGps == True:
 				self.bStazList.setDisabled(True)
+				self.bGeorefWGS84.setEnabled(True)
 			else:
 				self.bStazList.setEnabled(True)
 			#self.bStazVrt.setEnabled(True)
@@ -2381,6 +2403,7 @@ class topog4qgis:
 				self.bDistRid.setEnabled(True)
 				self.bOssCeler.setEnabled(True)
 				self.bStazList.setEnabled(True)
+				self.bGeorefWGS84.setEnabled(True)                
 			#self.bRAP.setEnabled(True)
 			#self.bPAP.setEnabled(True)
 			#self.bRRP.setEnabled(True)
@@ -2647,6 +2670,92 @@ class topog4qgis:
             
 #	---------- referencing functions --------------------
 
+	def georeferWGS84(self):
+		archivio = []
+		if self.libretto[1][0] == '6':
+			tmp0 = self.libretto[2]
+			k = 4            
+		else:
+			tmp0 = self.libretto[1]
+			k = 3            
+		#printList(self.misurati)        
+		id0 = tmp0.split('|')[1] 
+		baseline = tmp0.split('|')[2]        
+		x0,y0,z0 = float(baseline.split(',')[0]),float(baseline.split(',')[1]),float(baseline.split(',')[2])
+		#print(id0,x0,y0,z0)        
+		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0)
+		#print(id0,lon0,lat0,h0)
+		#X,Y,Z = topocentriche2geocentriche(x0,y0,z0,0,0,0)  #(U,V,W,X0,Y0,Z0)
+		#print('id','100','X',X,'y',Y,'Z',Z)        
+		#print(id0,math.degrees(lon0),math.degrees(lat0),h0)
+		archivio.append([id0,math.degrees(lon0),math.degrees(lat0),h0,'gps',id0,1])        
+		for i in range(k,len(self.libretto)):
+			tmp1 = self.libretto[i]
+			if tmp1[0] == '2':
+				#print(self.libretto[i])
+				id1 = tmp1.split('|')[1] 
+				coordinate = tmp1.split('|')[2]  
+				dx,dy,dz = float(coordinate.split(',')[0]),float(coordinate.split(',')[1]),float(coordinate.split(',')[2]) 
+				u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)
+				#X,Y,Z = topocentriche2geocentriche(dx,dy,dz,x0,y0,z0)                
+				#print('id',id1,'w',-w,'u',u,'v',-v)
+				#print('id',id1,'X',X,'Y',Y,'Z',Z)                
+				lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)
+				#lon1,lat1,h1 = geocentriche2wgs84(X,Y,Z)                
+				archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])
+				#x,y,z = topocentriche2geocentriche(-138.533,157.347,-1.051,-w,u,-v)
+				#print('id',id1,'x',x,'x',y,'z',z)                
+			else:      
+				break 
+		RilVrts = openLibretto_vertici(self.libretto)                
+		if RilVrts:
+			print("Trovate %d stazioni celerimetriche" % (len(RilVrts)))
+			for i in range(0,len(self.misurati)):
+				tmp1 = self.misurati[i]
+				if tmp1[4] != 'gps':
+					#print(self.misurati[i])
+					id1,x1,y1,z1 = tmp1[0],tmp1[1],tmp1[2],tmp1[3]  
+					#print('id',id1)					    
+					u,v,w = geocentriche2topocentriche(x0,y0,z0,0,0,0)
+					#print('id','200','w',-w,'u',u,'v',-v)                     
+					x,y,z = topocentriche2geocentriche(x1,y1,z1,-w,u,-v)
+					#print('id','200','x',x,'y',y,'z',z) 
+					dx,dy,dz = (x+w),(y-u),(z+v)                   
+					#print('id',id1,'dx',dx,'dy',dy,'dz',dz)
+					u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)                    
+					lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)                    
+					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                    
+		#print(archivio)
+		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)        
+		#QgsProject.instance().removeMapLayer(self.layLibMisur)        
+		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
+		self.cLayer.setLabelsEnabled(True)
+		self.layLibCollimWGS84 = self.cLayer
+		print('Layer vertici collimati su WGS84 (EPSG:4326) completato')
+		# crea layer contorni
+		if len(self.RilCtrn):
+			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)        
+			#QgsProject.instance().removeMapLayer(self.layLibCtrn) 
+			self.creaLineLayer('Rilievo_contorni_WGS84',self.RilCtrn,self.RilSty,archivio)
+			self.layLibCtrn = self.cLayer
+			# ------ attiva la simbologia categorizzata per i contorni -------
+			myRen = catSymbol(
+				self.cLayer.geometryType(),
+				'TRATTO',
+				[
+					['NC','#000000','nero continuo'],
+					['RC','#ff0000','rosso continuo'],
+					['NT','#000000','nero tratteggiato'],
+					['RT','#ff0000','rosso tratteggiato'],
+					['NP','#000000','nero puntinato'],
+					['RP','#ff0000','rosso puntinato']                       
+				]
+				)
+			self.cLayer.setRenderer(myRen)
+			print("Layer contorni libretto completati")
+		else:
+			print("non ci sono contorni nel libretto")        
+        
 	def georeferencer(self):
 		"""
 			esegue la rototraslazione con >=2 PF
@@ -2811,30 +2920,7 @@ class topog4qgis:
 # --------- inquiry functions --------------------
 
 	def librViewTool(self):
-		if self.cLayer.geometryType() == QgsPoint.isValid:	# occorre un vincolo più stringente
-			self.cLayer.removeSelection()
-			# try to disconnect all signals
-			if self.isClickToolActivated:
-				self.clickTool.canvasClicked.disconnect()
-				self.isClickToolActivated = False
-			# connect to click signal
-			QObject.connect(
-				self.clickTool,
-				SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"),
-				self.librView
-			)
-			self.isClickToolActivated = True
-			QMessageBox.information(
-				self.iface.mainWindow(),
-				"librView",
-				"Give me a vertex"
-			)
-		else:
-			QMessageBox.information(
-				self.iface.mainWindow(),
-				"rectAbsPos",
-				"The layer is not the right type"
-			)
+		printList(self.libretto)
 
 	def librView(self,point):
 		"""
