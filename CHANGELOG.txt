@@ -1,5 +1,10 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
-2020-04-29
+2020-05-01
+	risolto un bug relativo a letture celerimetriche senza descrizione
+	tra le elaborazioni ora e' possibile georeferire un rilievo contenente dati GPS (senza importare PF)
+	riscritta la routine della funzione "vedi Libretto" che ora e' funzionante
+	rimane da sistemare la funzione "Importa archivio distanze PF"
+2020-04-29 v0.2
 	dalla versione 0.2 sono gestiti anche i rilievi misti TPS-GPS
 	aggiunta tra le funzioni la possibilità di stampare su console Python le letture celerimetriche
 	corretti alcuni bugs nel render dei contorni letti da riga 7
@@ -16,7 +21,7 @@
 	adesso i libretti vengono rototraslati in modo baricentrico così da restituire un risultato più simile a PreGeo
 	la rototraslazione viene effettuata anche su PF ricadenti su Fogli diversi da quello dell'oggetto del rilievo
 	rototraslazione separata in due routine diverse: una per rilievi TS e una per rilievi GPS
-2020-04-05
+2020-04-05 v0.1
 	porting quasi totale del codice da QGIS2/PyQt4 a QGIS3/PyQt5
 	tutti gli output avvengono su console python
 	la rototraslazione viene al momento effettuata sui PF appartenenti allo stesso Foglio dell'oggetto del rilievo
