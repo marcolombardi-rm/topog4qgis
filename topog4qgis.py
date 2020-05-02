@@ -2677,34 +2677,21 @@ class topog4qgis:
 			k = 4            
 		else:
 			tmp0 = self.libretto[1]
-			k = 3            
-		#printList(self.misurati)        
+			k = 3                    
 		id0 = tmp0.split('|')[1] 
 		baseline = tmp0.split('|')[2]        
-		x0,y0,z0 = float(baseline.split(',')[0]),float(baseline.split(',')[1]),float(baseline.split(',')[2])
-		#print(id0,x0,y0,z0)        
-		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0)
-		#print(id0,lon0,lat0,h0)
-		#X,Y,Z = topocentriche2geocentriche(x0,y0,z0,0,0,0)  #(U,V,W,X0,Y0,Z0)
-		#print('id','100','X',X,'y',Y,'Z',Z)        
-		#print(id0,math.degrees(lon0),math.degrees(lat0),h0)
+		x0,y0,z0 = float(baseline.split(',')[0]),float(baseline.split(',')[1]),float(baseline.split(',')[2])        
+		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0)        
 		archivio.append([id0,math.degrees(lon0),math.degrees(lat0),h0,'gps',id0,1])        
 		for i in range(k,len(self.libretto)):
 			tmp1 = self.libretto[i]
 			if tmp1[0] == '2':
-				#print(self.libretto[i])
 				id1 = tmp1.split('|')[1] 
 				coordinate = tmp1.split('|')[2]  
 				dx,dy,dz = float(coordinate.split(',')[0]),float(coordinate.split(',')[1]),float(coordinate.split(',')[2]) 
-				u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)
-				#X,Y,Z = topocentriche2geocentriche(dx,dy,dz,x0,y0,z0)                
-				#print('id',id1,'w',-w,'u',u,'v',-v)
-				#print('id',id1,'X',X,'Y',Y,'Z',Z)                
-				lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)
-				#lon1,lat1,h1 = geocentriche2wgs84(X,Y,Z)                
-				archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])
-				#x,y,z = topocentriche2geocentriche(-138.533,157.347,-1.051,-w,u,-v)
-				#print('id',id1,'x',x,'x',y,'z',z)                
+				u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)               
+				lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)               
+				archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                
 			else:      
 				break 
 		RilVrts = openLibretto_vertici(self.libretto)                
@@ -2713,29 +2700,21 @@ class topog4qgis:
 			for i in range(0,len(self.misurati)):
 				tmp1 = self.misurati[i]
 				if tmp1[4] != 'gps':
-					#print(self.misurati[i])
-					id1,x1,y1,z1 = tmp1[0],tmp1[1],tmp1[2],tmp1[3]  
-					#print('id',id1)					    
-					u,v,w = geocentriche2topocentriche(x0,y0,z0,0,0,0)
-					#print('id','200','w',-w,'u',u,'v',-v)                     
+					id1,x1,y1,z1 = tmp1[0],tmp1[1],tmp1[2],tmp1[3]  					    
+					u,v,w = geocentriche2topocentriche(x0,y0,z0,0,0,0)             
 					x,y,z = topocentriche2geocentriche(x1,y1,z1,-w,u,-v)
-					#print('id','200','x',x,'y',y,'z',z) 
 					dx,dy,dz = (x+w),(y-u),(z+v)                   
-					#print('id',id1,'dx',dx,'dy',dy,'dz',dz)
 					u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)                    
 					lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)                    
 					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                    
-		#print(archivio)
-		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)        
-		#QgsProject.instance().removeMapLayer(self.layLibMisur)        
+		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)                
 		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
 		self.cLayer.setLabelsEnabled(True)
 		self.layLibCollimWGS84 = self.cLayer
 		print('Layer vertici collimati su WGS84 (EPSG:4326) completato')
 		# crea layer contorni
 		if len(self.RilCtrn):
-			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)        
-			#QgsProject.instance().removeMapLayer(self.layLibCtrn) 
+			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)         
 			self.creaLineLayer('Rilievo_contorni_WGS84',self.RilCtrn,self.RilSty,archivio)
 			self.layLibCtrn = self.cLayer
 			# ------ attiva la simbologia categorizzata per i contorni -------
