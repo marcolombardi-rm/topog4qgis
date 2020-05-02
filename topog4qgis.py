@@ -2681,16 +2681,17 @@ class topog4qgis:
 		id0 = tmp0.split('|')[1] 
 		baseline = tmp0.split('|')[2]        
 		x0,y0,z0 = float(baseline.split(',')[0]),float(baseline.split(',')[1]),float(baseline.split(',')[2])        
-		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0)        
+		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0) 
+		#print(id0,math.degrees(lon0),math.degrees(lat0),h0)        
 		archivio.append([id0,math.degrees(lon0),math.degrees(lat0),h0,'gps',id0,1])        
 		for i in range(k,len(self.libretto)):
 			tmp1 = self.libretto[i]
 			if tmp1[0] == '2':
 				id1 = tmp1.split('|')[1] 
 				coordinate = tmp1.split('|')[2]  
-				dx,dy,dz = float(coordinate.split(',')[0]),float(coordinate.split(',')[1]),float(coordinate.split(',')[2]) 
-				u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)               
-				lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)               
+				dx,dy,dz = float(coordinate.split(',')[0]),float(coordinate.split(',')[1]),float(coordinate.split(',')[2])                
+				lon1,lat1,h1 = geocentriche2wgs84(x0+dx,y0+dy,z0+dz) 
+				#print(id1,math.degrees(lon1),math.degrees(lat1),h1)                                
 				archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                
 			else:      
 				break 
@@ -2700,12 +2701,10 @@ class topog4qgis:
 			for i in range(0,len(self.misurati)):
 				tmp1 = self.misurati[i]
 				if tmp1[4] != 'gps':
-					id1,x1,y1,z1 = tmp1[0],tmp1[1],tmp1[2],tmp1[3]  					    
-					u,v,w = geocentriche2topocentriche(x0,y0,z0,0,0,0)             
-					x,y,z = topocentriche2geocentriche(x1,y1,z1,-w,u,-v)
-					dx,dy,dz = (x+w),(y-u),(z+v)                   
-					u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,0,0,0)                    
-					lon1,lat1,h1 = geocentriche2wgs84(-w,u,-v)                    
+					id1,u,v,w = tmp1[0],tmp1[1],tmp1[2],tmp1[3]
+					x,y,z = topocentriche2geocentriche(u,v,w,x0,y0,z0)                    
+					lon1,lat1,h1 = geocentriche2wgs84(x,y,z) 
+					#print(id1,math.degrees(lon1),math.degrees(lat1),h1)                    
 					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                    
 		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)                
 		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
