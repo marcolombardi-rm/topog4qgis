@@ -2172,16 +2172,15 @@ class topog4qgis:
 		self.cLayer.startEditing()
 		# parsing dei vertici
 		feat = QgsFeature()
-		for i in vrts:
-#			print i
-			if len(i) < nAttrs+2:	# deve avere gli n attributi + la coppia x,y
+		for i in vrts:            
+			if len(i) < nAttrs:	# deve avere gli n attributi + la coppia x,y
 				print('registrazione',i,'errata')
-			else:
+			else:            
 				feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(i[1],i[2])))
 				feat.initAttributes(nAttrs)
-				feat.setAttribute(0,i[0])
-				for k in range(nAttrs - 1):
-					feat.setAttribute(1+k,i[3+k])
+				feat.setAttribute(0,i[0])                
+				for k in range(nAttrs):                 
+					feat.setAttribute(k,i[k])
 				self.cLayer.addFeatures([feat])
 		# Commit changes
 		self.cLayer.commitChanges()
@@ -2333,7 +2332,7 @@ class topog4qgis:
 			# ---------parte grafica --------------
 			# crea layer vertici misurati
 			if len(self.misurati):
-				self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
+				self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 				self.layLibMisur = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print("Layer vertici misurati completato")
@@ -2341,7 +2340,7 @@ class topog4qgis:
 				print("non ci sono vertici misurati nel libretto")
 			# crea layer dei ribattuti
 			#if len(self.ribattuti):
-			#	self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
+			#	self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
 			#	self.layLibRibat = self.cLayer
 			#	self.cLayer.setLabelsEnabled(True)                
 			#	print("Layer vertici ribattuti completato")
@@ -2451,7 +2450,7 @@ class topog4qgis:
 			# ----- parte grafica ----------------
 			# crea layer PF
 			if len(self.edmPf):
-				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmPf)
+				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
 				self.layEdmPf = self.cLayer
 				print('Layer punti fiduciali completato')
 				self.cLayer.setLabelsEnabled(True)
@@ -2464,7 +2463,7 @@ class topog4qgis:
 			# --------- scrittura vertici della particella ----------
 			# queste sono superflue, possono servire solo alla numerazione dei vertici
 			if len(self.edmVrts):
-				self.creaPointLayer('EdM_vertici',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmVrts)
+				self.creaPointLayer('EdM_vertici',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmVrts)
 				print('Layer vertici particella completato')             
 				#child0 = root.children()[0]
 				#tmpLayer = child0.clone()
@@ -2608,7 +2607,7 @@ class topog4qgis:
 				)
 		# crea layer PF
 			if len(self.edmPf):
-				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["Z",QVariant.Double]],self.edmPf)
+				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
 				self.layEdmPf = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print('Layer punti fiduciali completato')
@@ -2707,7 +2706,7 @@ class topog4qgis:
 					#print(id1,math.degrees(lon1),math.degrees(lat1),h1)                    
 					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                    
 		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)                
-		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
+		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
 		self.cLayer.setLabelsEnabled(True)
 		self.layLibCollimWGS84 = self.cLayer
 		print('Layer vertici collimati su WGS84 (EPSG:4326) completato')
@@ -2768,16 +2767,18 @@ class topog4qgis:
 			self.misurati = tmp[0:nM]
 			self.ribattuti = tmp[nM:]
 			# cancella i layer dei misurati e ribattuti
-			QgsProject.instance().removeMapLayer(self.layLibMisur)
-			QgsProject.instance().removeMapLayer(self.layLibRibat)
-			QgsProject.instance().removeMapLayer(self.layLibCtrn)
+			#QgsProject.instance().removeMapLayer(self.layLibMisur)
+			#QgsProject.instance().removeMapLayer(self.layLibRibat)
+			#QgsProject.instance().removeMapLayer(self.layLibCtrn)
+			QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)
+			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False) 
 			# ---------------- ricrea i layer ----------------
 			# si potrebbero anche aggiornare i layer esistenti
-#			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
+#			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 #			self.layLibMisur = self.cLayer
 #			self.cLayer.setLabelsEnabled(True)
 #			print('Layer vertici misurati completato')
-#			self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
+#			self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
 #			self.layLibRibat = self.cLayer
 #			self.cLayer.setLabelsEnabled(True)
 #			print('Layer vertici ribattuti completato')
@@ -2812,7 +2813,7 @@ class topog4qgis:
 #				print "coordinate origine",oldCds
 				self.collimati = collimazione3PF(oldCds,newCds,self.collimati)
 				# crea layer vertici collimati
-				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
+				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
 				self.cLayer.setLabelsEnabled(True)
 				self.layLibCollim = self.cLayer
 				print('Layer vertici collimati su PF completato')
