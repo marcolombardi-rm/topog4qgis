@@ -14,13 +14,11 @@ La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disp
 Nel rilievo possono essere trattati anche contorni di unità catastali (particelle, fabbricati, linee dividenti, ecc.).
 Nella versione attuale del plugin, i dati sono inseriti mediante il listato delle letture celerimetriche o gps, nella forma comunemente chiamata di "libretto" di campagna"; i dati in uscita sono restituiti sotto forma di shp file di tipo puntuale e lineare.
 
-Il plugin è strettamente legato al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia;
-la gestione del rilievo è comunque sufficientemente generale da risultare utile, così almeno speriamo, in situazioni anche non nazionali.
-Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin.
+Il plugin è strettamente legato al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia; la gestione del rilievo è comunque sufficientemente generale da risultare utile, così almeno speriamo, in situazioni anche non nazionali.
+
+Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve per l'utilizzo.
 
 Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER.
-
-N.B. La georefenziazione del rilievo è fortemente influenzata dalla correttezza delle coordinate dei PF contenute nella TAF
 
 Giuliano Curti (original author) e Giuseppe Patti (contributor)
 
