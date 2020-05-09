@@ -1,4 +1,6 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2020-05-05 v0.2.1
+	aggiunta la possibilita' di importare anche libretti in formato PDF
 2020-05-01
 	risolto un bug relativo a letture celerimetriche senza descrizione
 	tra le elaborazioni ora e' possibile georeferire un rilievo contenente dati GPS (senza importare PF)

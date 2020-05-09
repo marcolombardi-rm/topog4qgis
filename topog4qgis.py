@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-04-29
+        updated on           : 2020-05-06
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -24,11 +24,12 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
  *                                                                         *
  ***************************************************************************/
 """
-
 # Import standard libraries
 import os,math,copy,functools,operator
 # Import codecs library
 import codecs
+# Import pdfrw core
+from .PyPDF2 import PdfFileReader
 # Import the PyQt and QGIS libraries
 from PyQt5 import QtCore, QtWidgets, QtGui
 from qgis.PyQt.QtCore import *
@@ -709,23 +710,46 @@ def topocentriche2geocentriche(U,V,W,X0,Y0,Z0):
 
 # ----- I/O functions -------------------
 
-def loadFile(fname):
+def loadFile(fname,extent):
 	"""
 	Importa il file fname
 	"""
 	lib = []
-	f = open(fname, 'r')
-	try:
-		f.readline()
-	except:
-		f = codecs.open(fname, 'r', 'cp1252')
-	for data in f:
-		if '***** Relazione  Tecnica *****' in data:
-			break	# finisce la lettura
-		# pulisce la riga
-		data = data.rstrip('\n')
-		data = data.rstrip('\r')
-		lib.append(data)    
+	if extent == 'pdf':
+		#print('libretto pdf')
+		input = PdfFileReader(open(fname, "rb"))
+		nPages = input.getNumPages()
+
+		for i in range(nPages):
+			page0 = input.getPage(i)
+			try:
+				for annot in page0['/Annots']:
+					subtype = annot.getObject()['/Subtype']
+					if subtype == '/Text':
+						tmp = annot.getObject()['/Contents']
+						if '[TAG1000]' in tmp:
+							tmp = tmp[9:]
+							tmp = tmp[:len(tmp)-10]
+							res = tmp.strip('][').split('<nr>')  
+							for i in (i for i,x in enumerate(res) if x == '6|                     ***** Relazione  Tecnica *****                    |'):	
+								#print(i)						
+								lib = res[1:i]					
+			except: 
+		        # there are no annotations on this page
+				pass				
+	else:	
+		f = open(fname, 'r')
+		try:
+			f.readline()
+		except:
+			f = codecs.open(fname, 'r', 'cp1252')
+		for data in f:
+			if '***** Relazione  Tecnica *****' in data:
+				break	# finisce la lettura
+			# pulisce la riga
+			data = data.rstrip('\n')
+			data = data.rstrip('\r')
+			lib.append(data)    			
 	return lib
 
 def openLibretto_vertici(libretto):
@@ -1828,7 +1852,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.2")
+		self.dlg.setWindowTitle("topog4qgis v0.2.1")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -2244,11 +2268,12 @@ class topog4qgis:
 			level=Qgis.Info
 		)
 		# ---------- carica il libretto delle misure -----------
-		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.dat')
+		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.dat *.pdf')
+		extent = fname[0][-3:]		
 		if fname[0] != "":
 			isCel = False
 			isGps = False
-			self.libretto = loadFile(fname[0])
+			self.libretto = loadFile(fname[0],extent)
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
 			myGps = openLibretto_gps(self.libretto)
@@ -2435,6 +2460,7 @@ class topog4qgis:
 				QgsProject.instance().removeMapLayer(self.layEdmPf)
 		# dialogo selezione file
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.emp')
+		extent = fname[0][-3:]
 		if fname[0] != "":
 			edm = loadFile(fname[0])
 			print('Lette %d registrazioni' % len(edm))
