@@ -2771,7 +2771,11 @@ class topog4qgis:
 			#QgsProject.instance().removeMapLayer(self.layLibRibat)
 			#QgsProject.instance().removeMapLayer(self.layLibCtrn)
 			QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)
-			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False) 
+			try:
+				QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id())
+				layLibCtrn = True                
+			except:
+				layLibCtrn = False                     
 			# ---------------- ricrea i layer ----------------
 			# si potrebbero anche aggiornare i layer esistenti
 #			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
@@ -2817,22 +2821,23 @@ class topog4qgis:
 				self.cLayer.setLabelsEnabled(True)
 				self.layLibCollim = self.cLayer
 				print('Layer vertici collimati su PF completato')
-				self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
-				self.layLibCtrn = self.cLayer
-				# ------ attiva la simbologia categorizzata per i contorni -------
-				myRen = catSymbol(
-					self.cLayer.geometryType(),
-					'TRATTO',
-					[
-						['NC','#000000','nero continuo'],
-						['RC','#ff0000','rosso continuo'],
-						['NT','#000000','nero tratteggiato'],
-						['RT','#ff0000','rosso tratteggiato'],
-						['NP','#000000','nero puntinato'],
-						['RP','#ff0000','rosso puntinato']                       
-					]
-				)
-				self.cLayer.setRenderer(myRen)               
+				if layLibCtrn == True:                
+					self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
+					self.layLibCtrn = self.cLayer
+					# ------ attiva la simbologia categorizzata per i contorni -------
+					myRen = catSymbol(
+						self.cLayer.geometryType(),
+						'TRATTO',
+						[
+							['NC','#000000','nero continuo'],
+							['RC','#ff0000','rosso continuo'],
+							['NT','#000000','nero tratteggiato'],
+							['RT','#ff0000','rosso tratteggiato'],
+							['NP','#000000','nero puntinato'],
+							['RP','#ff0000','rosso puntinato']                       
+						]
+					)
+					self.cLayer.setRenderer(myRen)               
 				self.bCollimList.setEnabled(True)
 				self.bErrPf.setEnabled(True)
 				self.bDistPf.setEnabled(True)
