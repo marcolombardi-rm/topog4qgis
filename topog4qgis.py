@@ -292,7 +292,7 @@ def matrixTranspose(mat):
 def adjoint(mat1,nr,mat2):
 	"""
 		Costruisce la matrice aggiunta composta dalle due matrici in input
-		(presume le matrice di pri numero di righe)
+		(presume le matrice di pari numero di righe)
 	"""
 	nc2 = len(mat2[1])
 	adj = []
@@ -331,9 +331,9 @@ def matrixMultiplication(mat1,mat2):
 	"""
 		Calcola il prodotto delle matrici mat1*mat2
 	"""
-#	print "matrice 1:"
+#	print("matrice 1:")
 #	self.printMatrix(mat1)
-#	print "matrice 2:"
+#	print("matrice 2:")
 #	self.printMatrix(mat2)
 	nr1 = len(mat1)
 	nc1 = len(mat1[0])
@@ -369,13 +369,13 @@ def matRotoTrasla(s1,s2,d1,d2):
 	d2x,d2y,d2z = d2
 	# calcola matrice di trasformazione
 	mat = matTranslation3D(-s1x,-s1y,-s1z)
-#	print "dopo 1.a traslazione"
+#	print("dopo 1.a traslazione")
 #	printMatrix(mat)
 	# ruota la linea s1-s2 sull'orizzontale
 	a1 = math.atan2(s2y-s1y,s2x-s1x)
 	# ruota per allinearla a d1-d2
 	a2 = math.atan2(d2y-d1y,d2x-d1x)
-#	print "ruota di",a2-a1
+#	print("ruota di",a2-a1)
 	mat1 = matRotation3DinZ(a2-a1)
 	mat = matrixMultiplication(mat1,mat)
 	#print("dopo rotazione")
