@@ -2462,7 +2462,7 @@ class topog4qgis:
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.emp')
 		extent = fname[0][-3:]
 		if fname[0] != "":
-			edm = loadFile(fname[0])
+			edm = loadFile(fname[0],extent)
 			print('Lette %d registrazioni' % len(edm))
 			# ---- legge punti fiduciali dell'EdM ---------
 			self.edmPf = openEDM_pf(edm)
