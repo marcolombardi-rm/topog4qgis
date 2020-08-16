@@ -2847,7 +2847,8 @@ class topog4qgis:
 				self.cLayer.setLabelsEnabled(True)
 				self.layLibCollim = self.cLayer
 				print('Layer vertici collimati su PF completato')
-				if layLibCtrn == True:                
+				if layLibCtrn == True:   
+					QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)                
 					self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
 					self.layLibCtrn = self.cLayer
 					# ------ attiva la simbologia categorizzata per i contorni -------
