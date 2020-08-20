@@ -2697,12 +2697,11 @@ class topog4qgis:
 
 	def georeferWGS84(self):
 		archivio = []
-		if self.libretto[1][0] == '6':
-			tmp0 = self.libretto[2]
-			k = 4            
-		else:
-			tmp0 = self.libretto[1]
-			k = 3                    
+		for k in range(0,len(self.libretto)):
+			if self.libretto[k][0] == '1':
+				tmp0 = self.libretto[k]               
+				k = 3                
+				break                                        
 		id0 = tmp0.split('|')[1] 
 		baseline = tmp0.split('|')[2]        
 		x0,y0,z0 = float(baseline.split(',')[0]),float(baseline.split(',')[1]),float(baseline.split(',')[2])        
