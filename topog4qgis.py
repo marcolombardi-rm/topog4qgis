@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-05-06
+        updated on           : 2020-08-20
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1699,6 +1699,7 @@ class navigatorDlg(QDialog):
 		hBox.addWidget(self.btn)
 
 		# inizializza la maschera
+		print(len(self.lista[self.cntr]))		
 		s1,s2 = self.lista[self.cntr]
 		msg = "%s - %s" % (s1,s2)
 		self.eLbl.setText(msg)
@@ -2416,13 +2417,13 @@ class topog4qgis:
 				self.bOssCeler.setDisabled(True)
 			else:
 				self.bCollimList.setDisabled(True)
-				self.bRibatList.setEnabled(True)
+				self.bRibatList.setEnabled(True)				
 				self.bNavPol.setEnabled(True)
 				self.bDistRid.setEnabled(True)
 				self.bOssCeler.setEnabled(True)
 			if isGps == True and isCel == True:
 				self.bCollimList.setDisabled(True)
-				self.bRibatList.setEnabled(True)
+				self.bRibatList.setEnabled(True)				
 				self.bNavPol.setEnabled(True)
 				self.bDistRid.setEnabled(True)
 				self.bOssCeler.setEnabled(True)
@@ -2699,8 +2700,7 @@ class topog4qgis:
 		archivio = []
 		for k in range(0,len(self.libretto)):
 			if self.libretto[k][0] == '1':
-				tmp0 = self.libretto[k]               
-				k = 3                
+				tmp0 = self.libretto[k]              
 				break                                        
 		id0 = tmp0.split('|')[1] 
 		baseline = tmp0.split('|')[2]        
@@ -2708,8 +2708,8 @@ class topog4qgis:
 		lon0,lat0,h0 = geocentriche2wgs84(x0,y0,z0) 
 		#print(id0,math.degrees(lon0),math.degrees(lat0),h0)        
 		archivio.append([id0,math.degrees(lon0),math.degrees(lat0),h0,'gps',id0,1])        
-		for i in range(k,len(self.libretto)):
-			tmp1 = self.libretto[i]
+		for i in range(k+1,len(self.libretto)):
+			tmp1 = self.libretto[i]		
 			if tmp1[0] == '2':
 				id1 = tmp1.split('|')[1] 
 				coordinate = tmp1.split('|')[2]  
@@ -2717,19 +2717,20 @@ class topog4qgis:
 				lon1,lat1,h1 = geocentriche2wgs84(x0+dx,y0+dy,z0+dz) 
 				#print(id1,math.degrees(lon1),math.degrees(lat1),h1)                                
 				archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                
-			else:      
+			elif tmp1[0] == '1':      
 				break 
 		RilVrts = openLibretto_vertici(self.libretto)                
 		if RilVrts:
 			print("Trovate %d stazioni celerimetriche" % (len(RilVrts)))
+			#print(len(self.ribattuti))			
 			for i in range(0,len(self.misurati)):
-				tmp1 = self.misurati[i]
+				tmp1 = self.misurati[i]				
 				if tmp1[4] != 'gps':
 					id1,u,v,w = tmp1[0],tmp1[1],tmp1[2],tmp1[3]
 					x,y,z = topocentriche2geocentriche(u,v,w,x0,y0,z0)                    
 					lon1,lat1,h1 = geocentriche2wgs84(x,y,z) 
 					#print(id1,math.degrees(lon1),math.degrees(lat1),h1)                    
-					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'gps',id0,i])                    
+					archivio.append([id1,math.degrees(lon1),math.degrees(lat1),h1,'tps',id0,i])                    
 		QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)                
 		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
 		self.cLayer.setLabelsEnabled(True)
