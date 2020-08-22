@@ -1043,7 +1043,7 @@ def osservazioniCelerimetriche(libretto):
 					l1 = libretto[j]
 					tmp1 = l1.split("|")
 					if tmp1[0] == '2':
-						print('Stazione',s0,'->',l1)
+						print('Stazione',s0,'->',l1)                        
 
 def distanzeRidotte(archivio,a_giro):
 	"""
@@ -2342,19 +2342,74 @@ class topog4qgis:
 			# ---------- separa i ribattuti dal resto dell'archivio ---------------
 			i = 0
 			maxPnts = len(self.misurati)
+			pdtmp = []            
 			while i < maxPnts:
 				p = self.misurati[i]
 				k = i+1
 				while k < maxPnts:
 					q = self.misurati[k]
-#					print "controllo",i,p[0],k,q[0],maxPnts
+					#print("controllo",i,p[0],k,q[0],maxPnts)
 					if p[0] == q[0]:
-#						print "punto ribattuto"
+						#print(p[0],"trovato punto ribattuto",q[0])
 						tmp = self.misurati.pop(k)	# toglie da misurati
-						self.ribattuti.append(tmp)	# e mette in ribattuti
+						self.ribattuti.append(tmp)	# e mette in ribattuti                        
+						pdtmp.append(q[0])                       
 						maxPnts -= 1				# aggiorna il numero dei misurati
 					k += 1
 				i += 1
+			#print('Cerco punti gps ribattuti da tps')
+			#print('lista iniziale',pdtmp) 
+			pd = list(set(pdtmp))            
+			#print('tolti i ribattuti doppi',pd) 
+			#print('lista stazioni senza doppioni',list(set(stazioniLista(self.libretto))))            
+			for st in range(1,len(list(set(stazioniLista(self.libretto))))):            
+				pd.remove(list(set(stazioniLista(self.libretto)))[st])                 
+			#print('tolte le stazioni',pd)     
+			stazList = stazioniLista(self.libretto)           
+			lst = [] #lista osservazioni per ogni stazione
+			for s0 in stazList:
+				for k,l0 in enumerate(self.libretto):
+					tmp0 = l0.split("|")                    
+					if tmp0[0] == '1' and tmp0[1] == s0:
+						#print('verifico stazione', s0)                        
+						#lst.append(s0)                        
+						for j in range(k+1,len(self.libretto)):
+							l1 = self.libretto[j]
+							tmp1 = l1.split("|")                             
+							if tmp1[0] == '2':
+								lst.append(tmp1[1])
+							else:
+								break                            
+						if len(list(set(lst) & set(stazList))) >= 1: #verifico se e' una poligonale
+							#print('trovata poligonale')   
+							pass #salto la stazione e vado avanti con la prossima                           
+						elif len(list(set(lst) & set(pd))) >= 2: #se non e' una poligonale cerco i punti da trattare
+							self.bNavPol.setDisabled(True) 							
+							print('Nella stazione',s0,'ci punti ribattuti da trattare')
+							#print(list(set(lst) - set(pd)))
+							#vanno ripescati i punti in self.misurati, ricalcolati e sostituiti                            
+							#print('elenco ribattuti da',s0)                            
+							for i,l in enumerate(self.ribattuti):
+							    if l[5] == s0 and l[0] == s0:
+							    	#print(l[5],l[0],l)
+							    	xd,yd,zd = l[1],l[2],l[3] #punto di arrivo (destinazione)
+							    	#print(xd,yd,zd)                                    
+							#print('elenco misurati da',s0)                                    
+							for i,l in enumerate(self.misurati):
+							    if l[0] == s0 and l[4] == 'gps':
+							    	#print(i,l[5],l[0],l)
+							    	xs,ys,zs = l[1],l[2],l[3] #punto di partenza (sorgente)                                    
+							    if l[5] == s0:
+							    	#print(i,l[5],l[0])
+							    	l[l.index(l[1])] = l[1] + xs-xd 
+							    	l[l.index(l[2])] = l[2] + ys-yd
+							    	l[l.index(l[3])] = l[3] + zs-yd                                    
+							    	#print(xs-xd,ys-yd,zs-zd) #delta x,y,z                                    
+							    	#self.misurati.pop(i)	# toglie da misurati                                    
+							lst.clear()      
+						else:
+							print('Non ci punti ribattuti da trattare')
+							self.bNavPol.setDisabled(True)                            
 			# ---------parte grafica --------------
 			# crea layer vertici misurati
 			if len(self.misurati):
@@ -2392,7 +2447,7 @@ class topog4qgis:
 				self.cLayer.setRenderer(myRen)
 				print("Layer contorni libretto completati")
 			else:
-				print("non ci sono contorni nel libretto")
+				print("Non ci sono contorni nel libretto")
 			# attiva le voci di menu
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
