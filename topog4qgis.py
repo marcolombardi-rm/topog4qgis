@@ -2819,6 +2819,7 @@ class topog4qgis:
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
 		"""
+		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
 		print("Rilevati i PF",listaPf)
@@ -2924,7 +2925,7 @@ class topog4qgis:
 				self.bErrPf.setEnabled(True)
 				self.bDistPf.setEnabled(True)
 				self.bBaric.setEnabled(True) 
-
+				self.misurati = backupmisurati
 #	---------- validation functions --------------------
 
 	def errorePF(self):
