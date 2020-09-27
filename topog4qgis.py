@@ -586,35 +586,35 @@ def lsm(old,new):
 		e si porta dietro tutto l'armamentario lì definito; potrebbe essere pesantemente
 		riorganizzata
 	"""
-#	print "matrice di origine"
-#	printMatrix(old)
-#	print "matrice di destinazione"
-#	printMatrix(new)
+	#print("matrice di origine")
+	#print(old)
+	#print("matrice di destinazione")
+	#print(new)
 	# calcolo la trasposta
 	oldT = matrixTranspose(old)
 	mat = matrixMultiplication(oldT,old)
-#	print "matrice normale"
+#	print("matrice normale")
 #	printMatrix(mat)
-#	print "Termine noto"
+	#print("termine noto")
 	tn = matrixMultiplication(oldT,new)
-#	print tn
-#	print "matrice inversa"
+	#print(tn)
+#	print("matrice inversa")
 	iMat = matrixInvert(mat)
 #	printMatrix(iMat)
 	sol = []
 	for i in range(len(tn)):	# per ogni colonna del termine noto
-#		print "---------- calcolo ----------",i
+#		print("---------- calcolo ----------",i)
 		myList = [[0,i]]	# questa strana forma è dovuta a precedenti (vedi rank())
 		tmp = prelievoColonne(tn,myList)
-#		print "termine noto"
+#		print("termine noto")
 #		printMatrix(tmp)
 		solTmp = matrixMultiplication(iMat,tmp)
-#		print "soluzione",solTmp
+#		print("soluzione",solTmp)
 		tmp = matrixTranspose(solTmp)
-#		print tmp
+#		print(tmp)
 		sol.append(tmp[0])	# questa operazione è empirica, serve ad eliminare un livello di parentesi, controllare
-#	print "soluzione"
-#	printMatrix(sol)
+	#print("soluzione")   
+	#print(sol)    
 	return sol
 
 def erroreLsm(res,att):
@@ -1398,7 +1398,7 @@ def collimazione3PF(oldCdsList,newCdsList,rilievo):
 		v[2] = 0.0
 	for v in newCdsList:
 		v[2] = 0.0
-	mat = lsm(oldCdsList,newCdsList)
+	mat = lsm(oldCdsList,newCdsList)    
 #	printMatrix(mat)
 	collimati = trasformaPunti2D(rilievo,mat)	# non si può usare matrixMultiplication() perchè ci sono altri elementi da 
 	return collimati
@@ -1910,7 +1910,7 @@ class topog4qgis:
 		mValid.addAction(self.bDistPf)
 		self.bDistPf.setDisabled(True)        
         
-		self.bBaric = QAction(QIcon(''),'Baricentri Geometrici',self.dlg)        
+		self.bBaric = QAction(QIcon(''),'Parametri RTR',self.dlg)        
 		self.bBaric.triggered.connect(self.baricentro)
 		mValid.addAction(self.bBaric)
 		self.bBaric.setDisabled(True)
@@ -2741,12 +2741,40 @@ class topog4qgis:
 		barPFcol.append((x0+x1+x2)/3)
 		barPFcol.append((y0+y1+y2)/3)
 		barPFcol.append(0)
-		print("baricentro PF (collimati)",barPFcol)        
+		print("baricentro PF (misurati)",barPFcol)        
 
-		deltaX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
-		deltaY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
+		print("calcolo i prodotti tra i delta dei (TAF) e dei (misurati)")
+		XEspdTAF = ((x0-(x0+x1+x2)/3)*(e0-(e0+e1+e2)/3)) + ((x1-(x0+x1+x2)/3)*(e1-(e0+e1+e2)/3)) + ((x2-(x0+x1+x2)/3)*(e2-(e0+e1+e2)/3))        
+		YNspdTAF = ((y0-(y0+y1+y2)/3)*(n0-(n0+n1+n2)/3)) + ((y1-(y0+y1+y2)/3)*(n1-(n0+n1+n2)/3)) + ((y2-(y0+y1+y2)/3)*(n2-(n0+n1+n2)/3))        
+		YEspdMIS = ((y0-(y0+y1+y2)/3)*(e0-(e0+e1+e2)/3)) + ((y1-(y0+y1+y2)/3)*(e1-(e0+e1+e2)/3)) + ((y2-(y0+y1+y2)/3)*(e2-(e0+e1+e2)/3)) 
+		XNspdMIS = ((x0-(x0+x1+x2)/3)*(n0-(n0+n1+n2)/3)) + ((x1-(x0+x1+x2)/3)*(n1-(n0+n1+n2)/3)) + ((x2-(x0+x1+x2)/3)*(n2-(n0+n1+n2)/3))  
+		#print("calcolo la somma dei quadrati tra i delta dei (misurati)")
+		XqsMIS = ((x0-(x0+x1+x2)/3)*(x0-(x0+x1+x2)/3)) + ((x1-(x0+x1+x2)/3)*(x1-(x0+x1+x2)/3)) + ((x2-(x0+x1+x2)/3)*(x2-(x0+x1+x2)/3))
+		YqsMIS = ((y0-(y0+y1+y2)/3)*(y0-(y0+y1+y2)/3)) + ((y1-(y0+y1+y2)/3)*(y1-(y0+y1+y2)/3)) + ((y2-(y0+y1+y2)/3)*(y2-(y0+y1+y2)/3))
+		print("incognite RTR conforme: c, s, scala")
+		c = (XEspdTAF + YNspdTAF)/(XqsMIS + YqsMIS) 
+		s = (YEspdMIS - XNspdMIS)/(XqsMIS + YqsMIS)
+		scala = math.sqrt((c*c)+(s*s))        
+		print("c",c)
+		print("s",s)
+		print("scala",scala)        
+		print("componenti per la traslazione conforme:")
+		print("E0", ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)) )
+		print("N0", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )
+		print("incognite RTR rigida: c, s, scala") 
+		c = c/scala
+		s = s/scala
+		scala = math.sqrt((c*c)+(s*s))        
+		print("c",c)
+		print("s",s)
+		print("scala",scala)         
+		print("componenti per la traslazione rigida:")
+		print("E0", ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)) )
+		print("N0", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )        
+		deltaX = ((x0+x1+x2)/3)+(((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)))-((e0+e1+e2)/3)
+		deltaY = ((y0+y1+y2)/3)+(((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)))-((n0+n1+n2)/3)
 		print("deltaX",deltaX)
-		print("deltaY",deltaY)       
+		print("deltaY",deltaY)      
 		return barPFcol,barPFuff, deltaX, deltaY
             
 #	---------- referencing functions --------------------
@@ -2819,6 +2847,7 @@ class topog4qgis:
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
 		"""
+		barPFcol,barPFuff, deltaX, deltaY = self.baricentro()
 		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
@@ -2836,16 +2865,17 @@ class topog4qgis:
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.misurati,i)
 				oldCds.append([x,y,z])
-#			print "coordinate origine",oldCds
+			#print("coordinate origine",oldCds)
 			# ... e quelle di destinazione
 			newCds = []
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.edmPf,i)
-				newCds.append([x,y,z])
-#			print "coordinate destinazione",newCds
+				newCds.append([x+deltaX,y+deltaY,z])
+			#print("coordinate destinazione",newCds)
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
 			nM = len(self.misurati)
 			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti)
+			#print(tmp)            
 			self.misurati = tmp[0:nM]
 			self.ribattuti = tmp[nM:]
 			# cancella i layer dei misurati e ribattuti
@@ -2887,17 +2917,48 @@ class topog4qgis:
 #			print('Layer contorni libretto completati')
 			# ----------- collimazione a 3 PF (rototraslazione) ------------
 			# NB: ricordare che in caso di mancata collimazione a 3 PF
-			#      i collimati coincidono con i misurati	
-			if len(listaPf) >= 3:
-				barPFcol,barPFuff, deltaX, deltaY = self.baricentro()
+			#      i collimati coincidono con i misurati
+			listaPf = pfLista(self.libretto)
+			for i0,j0 in enumerate(listaPf):
+				p,x0,y0,z = pointArchivioCds(self.misurati,j0)
+				p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
+				for i1 in range(i0,1):
+					j1 = listaPf[i1]
+					p,x1,y1,z = pointArchivioCds(self.misurati,j1)
+					p,e1,n1,z = pointArchivioCds(self.edmPf,j1) 
+				for i2 in range(i0,2):
+					j2 = listaPf[i2]
+					p,x2,y2,z = pointArchivioCds(self.misurati,j2)
+					p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
+    
+			barPFuff = []
+			barPFuff.append((e0+e1+e2)/3)
+			barPFuff.append((n0+n1+n2)/3)
+			barPFuff.append(0)
+			#print("baricentro PF (TAF)",barPFuff)
+
+			barPFcol = []
+			barPFcol.append((x0+x1+x2)/3)
+			barPFcol.append((y0+y1+y2)/3)
+			barPFcol.append(0)
+			#print("baricentro PF (collimati)",barPFcol)        
+
+			scartoX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
+			scartoY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
+			#print("scartoX",scartoX)
+			#print("scartoY",scartoY)                    
+			if len(listaPf) >= 3:                
 				self.collimati = copy.deepcopy(self.misurati)
 				# ricarica le coordinate origine
 				oldCds = []
 				for i in listaPf:
-					c,x,y,z = pointArchivioCds(self.collimati,i)
-					oldCds.append([x+deltaX,y+deltaY,z])
-#				print "coordinate origine",oldCds
-				self.collimati = collimazione3PF(oldCds,newCds,self.collimati)
+					c,x,y,z = pointArchivioCds(self.edmPf,i)
+					oldCds.append([x,y,z])                    
+				#print("coordinate origine",newCds)
+				#print("coordinate destinazione",oldCds)                
+				self.collimati = collimazione3PF(newCds,oldCds,self.collimati)
+				for n in range(0,len(self.collimati)):                
+					self.collimati[n][1],self.collimati[n][2] = self.collimati[n][1]+scartoX+deltaX,self.collimati[n][2]+scartoY+deltaY                
 				# crea layer vertici collimati
 				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
 				self.cLayer.setLabelsEnabled(True)
@@ -2950,8 +3011,8 @@ class topog4qgis:
 			c,x,y,z = pointArchivioCds(self.edmPf,i)
 			newCds.append([x,y,0.0])
 		#print("Coordinate PF ufficiali",newCds)
-		print('Errore medio dei PF (misurati):')
-		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
+		#print('Errore medio dei PF (misurati):')
+		#print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
 		# --------- collimati --------
 		oldCds = []
 		for i in listaPf:

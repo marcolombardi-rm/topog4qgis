@@ -1,4 +1,6 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2020-09-27 v0.2.1
+	riscritta completamente la routine di rototraslazione
 2020-08-22 v0.2.1
 	e' possibile trattare anche rilievi misti le cui stazioni celerimetriche sono iperdeterminate da piu' punti GPS
 2020-08-20 v0.2.1
