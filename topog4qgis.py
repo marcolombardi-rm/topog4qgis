@@ -1872,13 +1872,6 @@ class topog4qgis:
 		mFile.addAction(self.bImpLib)
 		self.bImpLib.setDisabled(True)
 
-		#tmp = QAction(QIcon(''),'Importa EdM',self.dlg)
-		self.bImpEDM = QAction(QIcon(''),'Importa EdM',self.dlg)        
-		self.bImpEDM.triggered.connect(self.importaEDM)
-		#mFile.addAction(tmp)
-		mFile.addAction(self.bImpEDM)
-		self.bImpEDM.setDisabled(True)
-
 		self.bPfTaf = QAction(QIcon(''),'Importa PF da Taf',self.dlg)        
 		self.bPfTaf.triggered.connect(self.importaPfDaTaf)
 		mFile.addAction(self.bPfTaf)
@@ -1917,6 +1910,13 @@ class topog4qgis:
 
 		# ---------- inquiry menu --------------
 		mInquiry = mb.addMenu('Funzioni')
+        
+		#tmp = QAction(QIcon(''),'Importa EdM',self.dlg)
+		self.bImpEDM = QAction(QIcon(''),'Importa EdM',self.dlg)        
+		self.bImpEDM.triggered.connect(self.importaEDM)
+		#mFile.addAction(tmp)
+		mInquiry.addAction(self.bImpEDM)
+		self.bImpEDM.setDisabled(True)        
 
 		self.bViewLib = QAction(QIcon(''),'Vedi Libretto',self.dlg)        
 		self.bViewLib.triggered.connect(self.librViewTool)
@@ -2570,7 +2570,7 @@ class topog4qgis:
 			else:
 				print('Nessun contorno nell EdM')
             # attiva i menu
-			self.bGeoref.setEnabled(True)
+			self.bGeoref.setEnabled(False)
 			self.bPfUff.setEnabled(True)
 			self.bDistPfUff.setEnabled(True)
 			self.bDistPfArch.setEnabled(True)
