@@ -1801,7 +1801,7 @@ class topog4qgis:
 		self.bImpEDM.setEnabled(True)
 		self.bImpLib.setEnabled(True)
 		self.bPfTaf.setDisabled(True)
-		self.bViewLib.setEnabled(True)
+		self.bViewLib.setDisabled(True)
 		self.bPfRil.setDisabled(True)
 		self.bDistPfRil.setDisabled(True)
 		self.bVrtsPrtcEdm.setDisabled(True)
