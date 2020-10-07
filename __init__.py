@@ -7,10 +7,10 @@ def description():
 	return "Experimental topographic tools for qGis"
 
 def version():
-	return "0.00"
+	return "0.3.0"
 
 def icon():
-    return ':/plugins/topog4qgis3/icon.png'
+    return ':/plugins/topog4qgis/icon.png'
 
 def qgisMinimumVersion():
 	return "3.0"

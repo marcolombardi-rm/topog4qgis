@@ -1,11 +1,13 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2020-10-05 v0.3.0
+	aggiunto al menu File la possibilita' di esportare il rilievo elaborato e rototraslato
 2020-09-27 v0.2.1
 	riscritta completamente la routine di rototraslazione
-2020-08-22 v0.2.1
+2020-08-22 
 	e' possibile trattare anche rilievi misti le cui stazioni celerimetriche sono iperdeterminate da piu' punti GPS
-2020-08-20 v0.2.1
+2020-08-20 
 	corretto un bug che limitava il numero massimo di righe 6 ad inizio libretto
-2020-05-05 v0.2.1
+2020-05-05 
 	aggiunta la possibilita' di importare anche libretti in formato PDF
 2020-05-01
 	risolto un bug relativo a letture celerimetriche senza descrizione

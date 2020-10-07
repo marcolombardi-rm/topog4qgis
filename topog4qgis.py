@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-08-20
+        updated on           : 2020-10-05
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -694,7 +694,8 @@ def geocentriche2topocentriche(X,Y,Z,X0,Y0,Z0):
 	U = -(X-X0)*math.sin(lon0) + (Y-Y0)*math.cos(lon0)
 	V = -(X-X0)*math.sin(lat0)*math.cos(lon0) - (Y-Y0)*math.sin(lat0)*math.sin(lon0) + (Z-Z0)*math.cos(lat0) 
 	W = (X-X0)*math.cos(lat0)*math.cos(lon0) + (Y-Y0)*math.cos(lat0)*math.sin(lon0) + (Z-Z0)*math.sin(lat0)
-	return U,V,W
+	quota = h0    
+	return U,V,W,quota
     
 def topocentriche2geocentriche(U,V,W,X0,Y0,Z0):
 	"""
@@ -812,38 +813,41 @@ def openLibretto_gps(libretto):
 	gps = []
 	lista = []
 	nRiga = -1	# così il primo valore è zero
-	note = 'gps'
+	note = ''
 	isFirst =True
 	for line in libretto:
 		nRiga += 1	
-		tmp = line.split('|')
+		tmp = line.split('|')        
 		cod = tmp.pop(0)		# questo elimina il primo campo	
 		if cod == '1'or cod == '2':	# così scarta tutto quello che non interessa
-			tmp.pop()				# elimina l'ultimo campo sempre vuoto
 			# è una lettura gps?
-			if ',' in tmp[1]:
-				pnt = tmp[0]
+			if ',' in tmp[1]: 
+				note = 'gps'        
+				#tmp.pop()				# elimina l'ultimo campo sempre vuoto            
+				pnt = tmp[0]		                
 				tmp2 = tmp[1].split(',')
 				dx,dy,dz = float(tmp2[0]),float(tmp2[1]),float(tmp2[2])
-				if cod == '1':
+				if cod == '1':                
+					note = tmp[3]                
 #					print "baseline",basLne
 					if tmp[2]:
 						hp = float(tmp[2])
 					else:
 						hp = 0.0
-					# Ã¨  successiva alla prima?
+					# è successiva alla prima?
 					if not isFirst:
 						gps.append(lista)
 					isFirst = False
 					# pulisce la lista
 					lista =[]
 				else:
+					note = tmp[5]                
 					#print('non è baseline')
 					if tmp[4]:
 						hp = float(tmp[4])
 					else:
-						hp = 0.0
-#				print "Riga:%s Gps:%s (%f %f %f) h=%f note:%s" % (nRiga,pnt,dx,dy,dz,hp,note)
+						hp = 0.0                         
+				#print("Riga:%s Gps:%s (%f %f %f) h=%f note:%s" % (nRiga,pnt,dx,dy,dz,hp,note))
 				# salva la lettura
 				lista.append([pnt,dx,dy,dz,hp,note,nRiga])
 	# salva l'ultima lista se c'è
@@ -1100,7 +1104,7 @@ def elaborazioneGps(myGps):
 		rimane il problema dell'altitudine da controllare bene;
 	"""
 	tmp = []
-	note = 'gps'
+	note = ''
 	for g in myGps:
 		# preleva la baseline (cds geocentriche)
 		reg = g[0]
@@ -1108,7 +1112,8 @@ def elaborazioneGps(myGps):
 		x0,y0,z0 = reg[1:4]
 		nRiga = reg[-1]
 		# trasforma in cds topocentriche
-		u,v,w = geocentriche2topocentriche(x0,y0,z0,x0,y0,z0)
+		u,v,w,quota = geocentriche2topocentriche(x0,y0,z0,x0,y0,z0)        
+		print("quota ellisoidica baseline:",quota)        
 		tmp.append([basLn,u,v,w,note,basLn,nRiga])
 		# calcola tutti i vertici
 		for i in range(1,len(g)):
@@ -1116,8 +1121,11 @@ def elaborazioneGps(myGps):
 			reg = g[i]
 			pId = reg[0]
 			dx,dy,dz = reg[1:4]
+			note =  reg[5]            
+			if note == '':
+				note = 'gps'           
 			# trasforma in cds topocentriche
-			u,v,w = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,x0,y0,z0)
+			u,v,w,quota = geocentriche2topocentriche(x0+dx,y0+dy,z0+dz,x0,y0,z0)
 			nRiga = reg[-1]
 			tmp.append([pId,u,v,w,note,basLn,nRiga])	
 	return tmp
@@ -1801,7 +1809,7 @@ class topog4qgis:
 		self.bImpEDM.setEnabled(True)
 		self.bImpLib.setEnabled(True)
 		self.bPfTaf.setDisabled(True)
-		self.bViewLib.setEnabled(True)
+		self.bViewLib.setDisabled(True)
 		self.bPfRil.setDisabled(True)
 		self.bDistPfRil.setDisabled(True)
 		self.bVrtsPrtcEdm.setDisabled(True)
@@ -1853,7 +1861,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.2.1")
+		self.dlg.setWindowTitle("topog4qgis v0.3.0")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -1876,6 +1884,19 @@ class topog4qgis:
 		self.bPfTaf.triggered.connect(self.importaPfDaTaf)
 		mFile.addAction(self.bPfTaf)
 		self.bPfTaf.setDisabled(True)
+
+		expMenu = QMenu('Esporta (.csv)', self.dlg)
+		self.expActRil = QAction('Rilievo elaborato', self.dlg)
+		self.expActRil.triggered.connect(self.esportaRilElab)        
+		self.expActCol = QAction('Rilievo rototraslato', self.dlg)
+		self.expActCol.triggered.connect(self.esportaRilCol)        
+
+		expMenu.addAction(self.expActRil)
+		expMenu.addAction(self.expActCol)       
+
+		mFile.addMenu(expMenu)
+		self.expActRil.setDisabled(True)
+		self.expActCol.setDisabled(True)        
 
 		# ---------- referencng menu --------------
 		mGeoref = mb.addMenu('Elaborazione')
@@ -2495,6 +2516,7 @@ class topog4qgis:
 				level=Qgis.Warning,
 				duration = 4
 			)
+		self.expActRil.setEnabled(True)            
 
 	def importaEDM(self):
 		"""
@@ -2987,6 +3009,8 @@ class topog4qgis:
 				self.bDistPf.setEnabled(True)
 				self.bBaric.setEnabled(True) 
 				self.misurati = backupmisurati
+
+		self.expActCol.setEnabled(True)                 
 #	---------- validation functions --------------------
 
 	def errorePF(self):
@@ -3335,6 +3359,30 @@ class topog4qgis:
 					lst.append(v[0])
 		if len(lst):
 			drawStar(self,cod,lst,self.archivio)
+
+	def esportaRilElab(self):
+		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','~','*.csv')
+		file = codecs.open(nameToExp[0], 'w', encoding='utf-8', errors='ignore')
+		file.write("punto"+","+"x"+","+"y"+","+"z"+","+"note"+"\r\n")        
+		for n in range(0,len(self.misurati)):
+			note = str(self.misurati[n][4])
+			if note == 'gps': note = ''        
+			line = str(self.misurati[n][0]) + "," + str(round(self.misurati[n][1],3)) + "," + str(round(self.misurati[n][2],3)) + "," + str(round(self.misurati[n][3],3)) + "," + note + "\r\n"        
+			file.write(line)
+		file.close()
+		print("Rilievo elaborato esportato")        
+        
+	def esportaRilCol(self):
+		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','~','*.csv')
+		file = codecs.open(nameToExp[0], 'w', encoding='utf-8', errors='ignore')
+		file.write("punto"+","+"x"+","+"y"+","+"z"+","+"note"+"\r\n")        
+		for n in range(0,len(self.collimati)):                
+			note = str(self.collimati[n][4])
+			if note == 'gps': note = ''			
+			line = str(self.collimati[n][0]) + "," + str(round(self.collimati[n][1],3)) + "," + str(round(self.collimati[n][2],3)) + "," + str(round(self.collimati[n][3],3)) + "," + note + "\r\n"        
+			file.write(line)
+		file.close()
+		print("Rilievo rototraslato esportato")            
 
 	def elencoMisurati(self):
 		print('Elenco delle coordinate misurate dei vertici del rilievo')
