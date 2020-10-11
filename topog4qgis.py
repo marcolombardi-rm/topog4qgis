@@ -593,8 +593,8 @@ def lsm(old,new):
 	# calcolo la trasposta
 	oldT = matrixTranspose(old)
 	mat = matrixMultiplication(oldT,old)
-#	print("matrice normale")
-#	printMatrix(mat)
+	#print("matrice normale")
+	#printMatrix(mat)
 	#print("termine noto")
 	tn = matrixMultiplication(oldT,new)
 	#print(tn)
@@ -2735,6 +2735,8 @@ class topog4qgis:
 
 	def baricentro(self):
 		listaPf = pfLista(self.libretto)
+		if len(listaPf) > 3:
+			listaPf = list(dict.fromkeys(listaPf))
 		for i0,j0 in enumerate(listaPf):
 			p,x0,y0,z = pointArchivioCds(self.misurati,j0)
 			p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
@@ -2756,16 +2758,16 @@ class topog4qgis:
 		barPFuff.append(0)
 		print("baricentro PF (TAF)",barPFuff)
         
-		#print('%s %12.3f %12.3f' % (i0,x0,y0))
-		#print('%s %12.3f %12.3f' % (i1,x1,y1))
-		#print('%s %12.3f %12.3f' % (i2,x2,y2))
+		print('%s %12.3f %12.3f' % (i0,x0,y0))
+		print('%s %12.3f %12.3f' % (i1,x1,y1))
+		print('%s %12.3f %12.3f' % (i2,x2,y2))
 		barPFcol = []
 		barPFcol.append((x0+x1+x2)/3)
 		barPFcol.append((y0+y1+y2)/3)
 		barPFcol.append(0)
 		print("baricentro PF (misurati)",barPFcol)        
 
-		print("calcolo i prodotti tra i delta dei (TAF) e dei (misurati)")
+		#print("calcolo i prodotti tra i delta dei (TAF) e dei (misurati)")
 		XEspdTAF = ((x0-(x0+x1+x2)/3)*(e0-(e0+e1+e2)/3)) + ((x1-(x0+x1+x2)/3)*(e1-(e0+e1+e2)/3)) + ((x2-(x0+x1+x2)/3)*(e2-(e0+e1+e2)/3))        
 		YNspdTAF = ((y0-(y0+y1+y2)/3)*(n0-(n0+n1+n2)/3)) + ((y1-(y0+y1+y2)/3)*(n1-(n0+n1+n2)/3)) + ((y2-(y0+y1+y2)/3)*(n2-(n0+n1+n2)/3))        
 		YEspdMIS = ((y0-(y0+y1+y2)/3)*(e0-(e0+e1+e2)/3)) + ((y1-(y0+y1+y2)/3)*(e1-(e0+e1+e2)/3)) + ((y2-(y0+y1+y2)/3)*(e2-(e0+e1+e2)/3)) 
@@ -2795,8 +2797,8 @@ class topog4qgis:
 		print("N0", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )        
 		deltaX = ((x0+x1+x2)/3)+(((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)))-((e0+e1+e2)/3)
 		deltaY = ((y0+y1+y2)/3)+(((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)))-((n0+n1+n2)/3)
-		print("deltaX",deltaX)
-		print("deltaY",deltaY)      
+		#print("deltaX",deltaX)
+		#print("deltaY",deltaY)      
 		return barPFcol,barPFuff, deltaX, deltaY
             
 #	---------- referencing functions --------------------
@@ -2871,16 +2873,18 @@ class topog4qgis:
 		"""
 		barPFcol,barPFuff, deltaX, deltaY = self.baricentro()
 		backupmisurati = copy.deepcopy(self.misurati)        
-		# controlla i PF misurati nel rilievo
+		# controlla i PF misurati nel rilievo        
 		listaPf = pfLista(self.libretto)
-		print("Rilevati i PF",listaPf)
+		if len(listaPf) > 3:
+			listaPf = list(dict.fromkeys(listaPf))                          
+		print("Nel libretto sono presenti i PF",listaPf)
 		if len(listaPf) < 2:
 			self.iface.messageBar().pushMessage(
 				"georeferencing",
 				"Attenzione: PF insufficienti: ne occorrono almeno 2 per la rototraslazione, 3 per la collimazione",
 				level=Qgis.Warning,
 				duration=3
-			)
+			)             
 		else:
 			# carica le coordinate origine
 			oldCds = []
@@ -2940,7 +2944,6 @@ class topog4qgis:
 			# ----------- collimazione a 3 PF (rototraslazione) ------------
 			# NB: ricordare che in caso di mancata collimazione a 3 PF
 			#      i collimati coincidono con i misurati
-			listaPf = pfLista(self.libretto)
 			for i0,j0 in enumerate(listaPf):
 				p,x0,y0,z = pointArchivioCds(self.misurati,j0)
 				p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
@@ -2969,7 +2972,7 @@ class topog4qgis:
 			scartoY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
 			#print("scartoX",scartoX)
 			#print("scartoY",scartoY)                    
-			if len(listaPf) >= 3:                
+			if len(listaPf) >= 3:
 				self.collimati = copy.deepcopy(self.misurati)
 				# ricarica le coordinate origine
 				oldCds = []
@@ -2986,6 +2989,7 @@ class topog4qgis:
 				self.cLayer.setLabelsEnabled(True)
 				self.layLibCollim = self.cLayer
 				print('Layer vertici collimati su PF completato')
+				self.errorePF()                
 				if layLibCtrn == True:   
 					QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)                
 					self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
@@ -3020,10 +3024,12 @@ class topog4qgis:
 		"""
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.libretto)
+		if len(listaPf) > 3:
+			listaPf = list(dict.fromkeys(listaPf))        
 		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
 			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
 				listaPf.append(pf[0])
-		print('Trovati i seguenti PF:',listaPf,'nel libretto')       
+		#print('Trovati i seguenti PF:',listaPf,'nel libretto')       
 		# --------- misurati --------
 		oldCds = []
 		for i in listaPf:
