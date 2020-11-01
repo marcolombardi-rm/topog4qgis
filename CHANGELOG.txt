@@ -1,4 +1,6 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2020-11-01 v0.3.1
+	riscritto e ottimizzato l'algoritmo di rototraslazione, migliorata la gestione degli scarti
 2020-10-05 v0.3.0
 	aggiunto al menu File la possibilita' di esportare il rilievo elaborato e rototraslato
 2020-09-27 v0.2.1

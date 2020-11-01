@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-10-05
+        updated on           : 2020-11-01
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -245,14 +245,15 @@ def fromRad(angRad,a_giro):
 def printMatrix(mat):
 	nr = len(mat)
 	nc = len(mat[0])
-	print(' ')
 	for c in range(nc):
-		print('%5s ' % (c+1))
+		print('%5s ' % (c+1), end = '')
+	print(' ')        
 	print('------' * (nc+2))
 	for r in range(nr):
-		print(r+1, '|')
+		print(r+1, '|', end = '')
 		for c in range(nc):
-			print('%5.2f ' % mat[r][c])
+			print('%5.2f ' % mat[r][c], end = '')
+		print(' ')            
 	print('------' * (nc+2))
 
 def nullMatrix(nr,nc):
@@ -332,9 +333,9 @@ def matrixMultiplication(mat1,mat2):
 		Calcola il prodotto delle matrici mat1*mat2
 	"""
 #	print("matrice 1:")
-#	self.printMatrix(mat1)
+#	printMatrix(mat1)
 #	print("matrice 2:")
-#	self.printMatrix(mat2)
+#	printMatrix(mat2)
 	nr1 = len(mat1)
 	nc1 = len(mat1[0])
 	nr2 = len(mat2)
@@ -354,7 +355,7 @@ def matrixMultiplication(mat1,mat2):
 		print ('matrici non congruenti per la moltiplicazione')
 		return -1
 
-def matRotoTrasla(s1,s2,d1,d2):
+def matRotoTrasla(s1,s2,d1,d2,ang):
 	"""
 		matrice di collimazione a 2 punti
 		s1	vecchio centro
@@ -371,20 +372,17 @@ def matRotoTrasla(s1,s2,d1,d2):
 	mat = matTranslation3D(-s1x,-s1y,-s1z)
 #	print("dopo 1.a traslazione")
 #	printMatrix(mat)
-	# ruota la linea s1-s2 sull'orizzontale
-	a1 = math.atan2(s2y-s1y,s2x-s1x)
-	# ruota per allinearla a d1-d2
-	a2 = math.atan2(d2y-d1y,d2x-d1x)
-#	print("ruota di",a2-a1)
-	mat1 = matRotation3DinZ(a2-a1)
+#	print("ruota di",-ang,"(rad)")
+#	print("ruota di",fromRad(-ang,400)-400,"(grad)")     
+	mat1 = matRotation3DinZ(-ang)    
 	mat = matrixMultiplication(mat1,mat)
-	#print("dopo rotazione")
-	#printMatrix(mat)
-	#print("trasla nel punto d1",d1x,d1y,d1z)
+#	print("dopo rotazione")
+#	printMatrix(mat)
+#	print("trasla nel punto d1",d1x,d1y,d1z)
 	mat1 = matTranslation3D(d1x,d1y,d1z)
 	mat = matrixMultiplication(mat1,mat)
-	#print("dopo 2.a traslazione")
-	#printMatrix(mat)
+#	print("dopo 2.a traslazione")
+#	printMatrix(mat)
 	return mat
     
 def matRotoTraslaTS(s1,s2,d1,d2,ang):
@@ -429,12 +427,12 @@ def trasformaPunti2D(points,mat):
 	"""
 	nDim = len(mat)
 	for i in points:
-#		print "il nodo %s (%7.3f %7.3f)" % (i[0],i[1],i[2]),
+#		print("il nodo %s (%7.3f %7.3f)" % (i[0],i[1],i[2]))
 		cds = []
 		for [a,b,c] in mat:
 			cds.append(a*i[1]+b*i[2]+c)
 		i[1],i[2] = cds[0],cds[1]
-#		print 'diventa (%7.3f %7.3f)' % (i[1],i[2])
+#		print('diventa (%7.3f %7.3f)' % (i[1],i[2]))
 	return points
 
 def trasformaPunti3D(points,mat):
@@ -442,12 +440,12 @@ def trasformaPunti3D(points,mat):
 		trasforma i points secondo la matrice mat
 	"""
 	for i in points:
-#		print "il nodo %s (%7.3f %7.3f%7.3f)" % (i[0],i[1],i[2],i[3]),
+#		print("il nodo %s (%7.3f %7.3f%7.3f)" % (i[0],i[1],i[2],i[3]))
 		cds = []
 		for [a,b,c,d] in mat:
 			cds.append(a*i[1]+b*i[2]+c*i[3]+d)
 		i[1],i[2],i[3] = cds[0],cds[1],cds[2]
-#		print 'diventa (%7.3f %7.3f%7.3f)' % (i[1],i[2],i[3])
+#		print('diventa (%7.3f %7.3f%7.3f)' % (i[1],i[2],i[3]))
 	return points
 
 def EchelonNF(mat):
@@ -458,39 +456,39 @@ def EchelonNF(mat):
 	"""
 	nr = len(mat)
 	nc = len(mat[0])
-	# print "discesa"
+	# print("discesa")
 	for i in range(nr):
-		# print "riga",i
+		# print("riga",i)
 		# determina il pivot
 		# dovrebbe essere da i in avanti perchè dietro dovrebbero essere nulli
 		# però, poichè non facciamo lo swap delle righe, ripartiamo dall'inizio
 		for j in range(nc):
 			if abs(mat[i][j]) > 1E-10:
-				# print "controllo",i,j
+				# print("controllo",i,j)
 				cp = j
 				piv = mat[i][cp]
-				# print "trovato pivot riga",i,"in colonna",cp,"e vale",piv,"normalizzo la riga"
+				# print("trovato pivot riga",i,"in colonna",cp,"e vale",piv,"normalizzo la riga")
 				for l in range(nc):	# forse si può partire da cp che è la prima colonna nonnulla
 					mat[i][l] = mat[i][l]/piv
 				# elimina dalla colonna pivot in avanti
 				for j in range(i+1,nr):
-					# print "elimino all'ingiu riga",j
+					# print("elimino all'ingiu riga",j)
 					k = mat[j][cp]
 					for l in range(cp,nc):
 						mat[j][l] = mat[j][l]-k*mat[i][l]
 				break
 		# printMatrix(mat)
-	# print "salita"
+	# print("salita")
 	for i in reversed(range(nr)):
-		#print "riga",i
+		#print("riga",i)
 		# determina il pivot (vedi sopra a proposito della ricerca del pivot)
 		for j in range(nc):
 			if abs(mat[i][j]) > 1E-10:
 				cp = j
 				piv = mat[i][j]
-				#print "trovato pivot riga",i,"in colonna",cp,"e vale",piv
+				#print("trovato pivot riga",i,"in colonna",cp,"e vale",piv)
 				for j in range(i):
-					#print "elimino riga",j
+					#print("elimino riga",j)
 					k = mat[j][cp]/piv
 					for l in range(cp,nc):
 						mat[j][l] = mat[j][l]-k*mat[i][l]
@@ -509,11 +507,11 @@ def rank(mat):
 	nc = len(mat[0])
 	rng = []
 	for i in range(nr):
-		# print "riga",i
+		# print("riga",i)
 		for j in range(nc):
-			# print "colonna",j
+			# print("colonna",j)
 			if mat[i][j] > 1E-10:
-				# print "      ",mat[i][j],"è un pivot"
+				# print("      ",mat[i][j],"è un pivot")
 				rng.append([i,j])
 				break
 	return rng
@@ -561,21 +559,21 @@ def matrixInvert(mat):
 			# calcola il rank (nelle prime nc colonne!)
 			rng = rank(mat)
 			rk = len(rng)
-			# print "Rank =",rk,"colonne del range",rng
+			# print("Rank =",rk,"colonne del range",rng)
 			if rk == nr:
 				# preleva la parte destra della matrice ridotta
 				list = []
 				for i in range(nr):
 					list.append([i,nr+i])
-				# print "lista è",list
+				# print("lista è",list)
 				# deve prelevare la inversa
 				mat = prelievoColonne(mat,list)
 				return mat
 			else:
-				# print "la matrice non è invertibile"
+				# print("la matrice non è invertibile")
 				return -2
 	else:
-		# print "matrice non quadrata: non esiste l'inversa!"
+		# print("matrice non quadrata: non esiste l'inversa!")
 		return -1
 
 def lsm(old,new):
@@ -586,21 +584,22 @@ def lsm(old,new):
 		e si porta dietro tutto l'armamentario lì definito; potrebbe essere pesantemente
 		riorganizzata
 	"""
-	#print("matrice di origine")
-	#print(old)
-	#print("matrice di destinazione")
-	#print(new)
-	# calcolo la trasposta
+	print("l(est) s(quare) m(ethod)")    
+	print("matrice di origine")
+	printMatrix(old)
+	print("matrice di destinazione")
+	printMatrix(new)
+	print("calcolo la trasposta")
 	oldT = matrixTranspose(old)
 	mat = matrixMultiplication(oldT,old)
-	#print("matrice normale")
-	#printMatrix(mat)
-	#print("termine noto")
+	print("matrice normale")
+	printMatrix(mat)
+	print("termine noto")
 	tn = matrixMultiplication(oldT,new)
-	#print(tn)
-#	print("matrice inversa")
+	printMatrix(tn)
+	print("matrice inversa")
 	iMat = matrixInvert(mat)
-#	printMatrix(iMat)
+	printMatrix(iMat)
 	sol = []
 	for i in range(len(tn)):	# per ogni colonna del termine noto
 #		print("---------- calcolo ----------",i)
@@ -613,8 +612,8 @@ def lsm(old,new):
 		tmp = matrixTranspose(solTmp)
 #		print(tmp)
 		sol.append(tmp[0])	# questa operazione è empirica, serve ad eliminare un livello di parentesi, controllare
-	#print("soluzione")   
-	#print(sol)    
+	print("soluzione lsm")   
+	printMatrix(sol)    
 	return sol
 
 def erroreLsm(res,att):
@@ -632,7 +631,7 @@ def erroreLsm(res,att):
 #			print i,k,rv,att[i][k]
 			err += d**2
 		err = math.sqrt(err)
-#		print "errore",i,err
+#		print("errore",i,err)
 		errTot += err
 		if err < errMin:
 			errMin = err
@@ -665,22 +664,22 @@ def geocentriche2wgs84(x,y,z):
 	"""
 	# ellissoide WGS84
 	a,b = wgs84()
-#	print "semiassi:",a,b
+#	print("semiassi:",a,b)
 	# dati preliminari
 	e2 = (a**2-b**2)/a**2
-#	print "e2:",e2
+#	print("e2:",e2)
 	eps = e2 / (1-e2)
-#	print "eps:",eps
+#	print("eps:",eps)
 	p = math.sqrt(x**2 + y**2)
 #	print"p:",p
 	q = math.atan2(z*a,p*b)
-#	print "q:",q
+#	print("q:",q)
 	# cordinate geografiche
 	lat = math.atan2(z+eps*b*math.sin(q)**3,p-e2*a*math.cos(q)**3)
-#	print "lat:",lat
+#	print("lat:",lat)
 	lon = math.atan2(y,x)	# anche formula Vanicek/Krakiwsky o Vermeille in Ligas/Banasik
 	v = a/math.sqrt(1-e2*math.sin(lat)**2)
-#	print "v:",v
+#	print("v:",v)
 	h = p/math.cos(lat)-v 
 	return lon,lat,h
 
@@ -775,13 +774,13 @@ def openLibretto_vertici(libretto):
 		cod = tmp.pop(0)		# questo elimina il primo campo	
 		if cod == '1'or cod == '2':	# così scarta tutto quello che non interessa
 			tmp.pop()				# elimina l'ultimo campo sempre vuoto
-#			print "Riga:",nRiga,tmp[1]
+#			print("Riga:",nRiga,tmp[1])
 			# è una lettura gps?
 			if not ',' in tmp[1]:	# altrimenti sarebbe una lettura gps
 				# E' una stazione?
 				if cod == '1':
 					codStaz = tmp[0]
-#					print "stazione",codStaz
+#					print("stazione",codStaz)
 					# E' successiva alla prima?
 					if not isFirst:
 						celerimensura.append(stazione)
@@ -829,7 +828,7 @@ def openLibretto_gps(libretto):
 				dx,dy,dz = float(tmp2[0]),float(tmp2[1]),float(tmp2[2])
 				if cod == '1':                
 					note = tmp[3]                
-#					print "baseline",basLne
+#					print("baseline",basLne)
 					if tmp[2]:
 						hp = float(tmp[2])
 					else:
@@ -975,11 +974,11 @@ def pointArchivioCds(archivio,p):
 		in caso di fallimento restituisce un id = -1
 	"""
 	for k,i in enumerate(archivio):
-#		print "controllo se",str(p),"è uguale a",i[0]
+#		print("controllo se",str(p),"è uguale a",i[0])
 		if i[0] == str(p):
-#			print "trovato",p
+#			print("trovato",p)
 			return k,i[1],i[2],i[3]
-#	print "non trovato",p
+#	print("non trovato",p)
 	return [-1,0,0,0]
 
 def printList(lib):
@@ -1016,21 +1015,21 @@ def lettureFraStazioni(libretto):
 	# cerca le lettura fra stazioni
 	lst = []
 	for s0 in stazList:
-#		print "cerco la stazione",s0
+#		print("cerco la stazione",s0)
 		for k,l0 in enumerate(libretto):
 			tmp0 = l0.split("|")
-#			print tmp0
+#			print(tmp0)
 			if tmp0[0] == '1' and tmp0[1] == s0:
 				break
-#		print "cerco la stazione mirata",s1
+#		print("cerco la stazione mirata",s1)
 		for j in range(k+1,len(libretto)):	# dalla stazione precedente alla fine del libretto
 			l1 = libretto[j]
 			tmp1 = l1.split("|")
-#			print tmp1
+#			print(tmp1)
 			if tmp1[0] == '1':
 				break	# ha trovato un'altra stazione
 			if tmp1[0] == '2' and tmp1[1] in stazList:
-#				print s0,tmp1[1]
+#				print(s0,tmp1[1])
 				lst.append([s0,tmp1[1]])
 	return lst
 
@@ -1060,12 +1059,12 @@ def distanzeRidotte(archivio,a_giro):
 		cod = tmp.pop(0)		# questo elimina il primo campo	
 		if cod == '1'or cod == '2':	# così scarta tutto quello che non interessa
 			tmp.pop()				# elimina l'ultimo campo sempre vuoto
-#			print "Riga:",nRiga,tmp[1]
+#			print("Riga:",nRiga,tmp[1])
 			if ',' not in tmp[1]:	# altrimenti sarebbe una lettura gps
 				# E' una stazione?
 				if cod == '1':
 					staz = tmp[0]
-#					print "stazione",codStaz
+#					print("stazione",codStaz)
 				else:
 					if len(tmp) == 6:	# punto dotato di altimetria
 						pnt = tmp[0]
@@ -1230,21 +1229,21 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 	# controlla se la stazione è già stata osservata
 	newStaz = rilievo[0][0]
 	s1 = [0,0,0]
-#	print "nuova stazione",newStaz,"dalla posizione",0,0,0
+#	print("nuova stazione",newStaz,"dalla posizione",0,0,0)
 	pos,x,y,z = pointArchivioCds(archivio,newStaz)
 	if pos >= 0:
 		d1 = [x,y,z]
-#		print "alla posizione",x,y,z
+#		print("alla posizione",x,y,z)
 		# stazione mirante
 		prevStaz = archivio[pos][5]
 		pos,x,y,z = pointArchivioCds(rilievo,prevStaz)
 		if pos >= 0:
 			s2 = [x,y,z]
-#			print "la stazione mirante",prevStaz,"dalla posizione",x,y,z
+#			print("la stazione mirante",prevStaz,"dalla posizione",x,y,z)
 			pos,x,y,z = pointArchivioCds(archivio,prevStaz)
 			if pos >= 0:
 				d2 = [x,y,z]
-#				print "alla posizione",x,y,z
+#				print("alla posizione",x,y,z)
 				# matrice di trasformazione
 				if tipologia == 2:
 					for k in archivio:
@@ -1283,7 +1282,7 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 					#print('az_en - az_xy',ang)
 					#print(ang)
 				mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
-#				print "matrice di trasformazione",mat
+#				print("matrice di trasformazione",mat)
 				collimati = trasformaPunti3D(rilievo,mat)
 			else:
 				print('la stazione mirante non è in archivio (questo errore non si dovrebbe MAI verificare)')
@@ -1337,7 +1336,7 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 							#print(ang)
 						# matrice di trasformazione
 						mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
-#						print "matrice di trasformazione",mat
+#						print("matrice di trasformazione",mat)
 						collimati = trasformaPunti3D(rilievo,mat)	# si può usare matrixMultiplication()
 						break
 	else:
@@ -1372,7 +1371,7 @@ def allEsquad(archivio,allin):
 		z = 0.0
 		return [cod,x,y,z,note,staz,nRiga]
 
-def collimazione2PF(oldCds,newCds,archivio):
+def collimazione2PF(oldCds,newCds,archivio,ang):
 	"""
 		esegue la georeferenzazione a due PF, il primo di centratura ed
 		il secondo di allineamento;
@@ -1382,15 +1381,15 @@ def collimazione2PF(oldCds,newCds,archivio):
 	# coordinate del centro 
 	oldC = oldCds[0]
 	newC = newCds[0]
-#	print "centra da",oldC,"a",newC
+	#print("centra da",oldC,"a",newC)
 	# coordinate dell'allineamento
 	oldA = oldCds[1]
 	newA = newCds[1] 
-#	print "allinea da",oldA,"a",newA
+	#print("allinea da",oldA,"a",newA)
 	# esegue la rototraslazione (collimazione a 2 punti)
-	mat = matRotoTrasla(oldC,oldA,newC,newA)
-#	print "matrice di rototraslazione"
-#	printMatrix(mat)
+	mat = matRotoTrasla(oldC,oldA,newC,newA,ang)
+	#print("matrice di rototraslazione")
+	#printMatrix(mat)
 	archivio = trasformaPunti3D(archivio,mat)	# non si può usare matrixMultiplication() perchè ci sono altri elementi da conservare
 	return archivio
 
@@ -1406,8 +1405,9 @@ def collimazione3PF(oldCdsList,newCdsList,rilievo):
 		v[2] = 0.0
 	for v in newCdsList:
 		v[2] = 0.0
-	mat = lsm(oldCdsList,newCdsList)    
-#	printMatrix(mat)
+	mat = lsm(oldCdsList,newCdsList)
+	print("matrice lsm")    
+	printMatrix(mat)
 	collimati = trasformaPunti2D(rilievo,mat)	# non si può usare matrixMultiplication() perchè ci sono altri elementi da 
 	return collimati
 
@@ -1728,12 +1728,12 @@ class navigatorDlg(QDialog):
 
 	def update(self):
 		s1,s2 = self.lista[self.cntr]
-#		print "cerco la stazione",s1
+#		print("cerco la stazione",s1)
 		for k,l1 in enumerate(self.libretto):
 			tmp1 = l1.split("|")
 #			print tmp0
 			if tmp1[0] == '1' and tmp1[1] == s1:
-#				print "cerco la stazione mirata",s2
+#				print("cerco la stazione mirata",s2)
 				for j in range(k+1,len(self.libretto)):	# dalla stazione precedente alla fine del libretto
 					l2 = self.libretto[j]
 					tmp2 = l2.split("|")
@@ -1861,7 +1861,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.0")
+		self.dlg.setWindowTitle("topog4qgis v0.3.1")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -1925,7 +1925,7 @@ class topog4qgis:
 		self.bDistPf.setDisabled(True)        
         
 		self.bBaric = QAction(QIcon(''),'Parametri RTR',self.dlg)        
-		self.bBaric.triggered.connect(self.baricentro)
+		self.bBaric.triggered.connect(self.parametriRTR)
 		mValid.addAction(self.bBaric)
 		self.bBaric.setDisabled(True)
 
@@ -2342,7 +2342,7 @@ class topog4qgis:
 # occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti
 				isFirst = False
 				if len(tmp):
-#					print "trasferimento in archivio della stazione",tmp[0][0]
+#					print("trasferimento in archivio della stazione",tmp[0][0])
 					for i in tmp:
 						rilievo.append(i)
 				else:
@@ -2731,9 +2731,9 @@ class topog4qgis:
 				duration=4
 			)
             
-#	------------ calcolo baricentro  --------------------
+#	------------ calcolo parametri RTR  --------------------
 
-	def baricentro(self):
+	def parametriRTR(self):
 		listaPf = pfLista(self.libretto)
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))
@@ -2747,25 +2747,7 @@ class topog4qgis:
 			for i2 in range(i0,2):
 				j2 = listaPf[i2]
 				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
-				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
-		# stampa     
-		#print('%s %12.3f %12.3f' % (i0,e0,n0))
-		#print('%s %12.3f %12.3f' % (i1,e1,n1))
-		#print('%s %12.3f %12.3f' % (i2,e2,n2))  
-		barPFuff = []
-		barPFuff.append((e0+e1+e2)/3)
-		barPFuff.append((n0+n1+n2)/3)
-		barPFuff.append(0)
-		print("baricentro PF (TAF)",barPFuff)
-        
-		print('%s %12.3f %12.3f' % (i0,x0,y0))
-		print('%s %12.3f %12.3f' % (i1,x1,y1))
-		print('%s %12.3f %12.3f' % (i2,x2,y2))
-		barPFcol = []
-		barPFcol.append((x0+x1+x2)/3)
-		barPFcol.append((y0+y1+y2)/3)
-		barPFcol.append(0)
-		print("baricentro PF (misurati)",barPFcol)        
+				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                            
 
 		#print("calcolo i prodotti tra i delta dei (TAF) e dei (misurati)")
 		XEspdTAF = ((x0-(x0+x1+x2)/3)*(e0-(e0+e1+e2)/3)) + ((x1-(x0+x1+x2)/3)*(e1-(e0+e1+e2)/3)) + ((x2-(x0+x1+x2)/3)*(e2-(e0+e1+e2)/3))        
@@ -2783,23 +2765,28 @@ class topog4qgis:
 		print("s",s)
 		print("scala",scala)        
 		print("componenti per la traslazione conforme:")
-		print("E0", ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)) )
-		print("N0", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )
+		print("dX", ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)) )
+		print("dY", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )
 		print("incognite RTR rigida: c, s, scala") 
 		c = c/scala
 		s = s/scala
-		scala = math.sqrt((c*c)+(s*s))        
+		scala = math.sqrt((c*c)+(s*s))
+		ang = math.atan2(s,c)        
 		print("c",c)
 		print("s",s)
 		print("scala",scala)         
 		print("componenti per la traslazione rigida:")
-		print("E0", ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)) )
-		print("N0", ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)) )        
-		deltaX = ((x0+x1+x2)/3)+(((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)))-((e0+e1+e2)/3)
-		deltaY = ((y0+y1+y2)/3)+(((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)))-((n0+n1+n2)/3)
+		dX = ((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3))
+		dY = ((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3))
+		print("dX",dX)
+		print("dY",dY)        
+		#deltaX = ((x0+x1+x2)/3)+(((e0+e1+e2)/3)-(s*((y0+y1+y2)/3))-(c*((x0+x1+x2)/3)))-((e0+e1+e2)/3)
+		#deltaY = ((y0+y1+y2)/3)+(((n0+n1+n2)/3)-(c*((y0+y1+y2)/3))+(s*((x0+x1+x2)/3)))-((n0+n1+n2)/3)
 		#print("deltaX",deltaX)
-		#print("deltaY",deltaY)      
-		return barPFcol,barPFuff, deltaX, deltaY
+		#print("deltaY",deltaY)
+		print("angolo rotazione (rad)",ang)
+		print("angolo rotazione (grad)",fromRad(ang,400)-400)        
+		return dX, dY, ang
             
 #	---------- referencing functions --------------------
 
@@ -2871,7 +2858,7 @@ class topog4qgis:
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
 		"""
-		barPFcol,barPFuff, deltaX, deltaY = self.baricentro()
+		dX, dY, ang = self.parametriRTR()
 		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo        
 		listaPf = pfLista(self.libretto)
@@ -2888,132 +2875,87 @@ class topog4qgis:
 		else:
 			# carica le coordinate origine
 			oldCds = []
+			oldCds.append([0,0,0])            
 			for i in listaPf:
 				c,x,y,z = pointArchivioCds(self.misurati,i)
 				oldCds.append([x,y,z])
 			#print("coordinate origine",oldCds)
 			# ... e quelle di destinazione
 			newCds = []
+			newCds.append([dX,dY,0])            
 			for i in listaPf:
-				c,x,y,z = pointArchivioCds(self.edmPf,i)
-				newCds.append([x+deltaX,y+deltaY,z])
+				c,e,n,q = pointArchivioCds(self.edmPf,i)
+				newCds.append([e,n,q])                
 			#print("coordinate destinazione",newCds)
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
-			nM = len(self.misurati)
-			tmp = collimazione2PF(oldCds,newCds,self.misurati+self.ribattuti)
-			#print(tmp)            
-			self.misurati = tmp[0:nM]
-			self.ribattuti = tmp[nM:]
-			# cancella i layer dei misurati e ribattuti
-			#QgsProject.instance().removeMapLayer(self.layLibMisur)
-			#QgsProject.instance().removeMapLayer(self.layLibRibat)
-			#QgsProject.instance().removeMapLayer(self.layLibCtrn)
+			self.collimati = collimazione2PF(oldCds,newCds,self.misurati,ang)            
+            
 			QgsProject.instance().layerTreeRoot().findLayer(self.layLibMisur.id()).setItemVisibilityChecked(False)
 			try:
 				QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id())
 				layLibCtrn = True                
 			except:
-				layLibCtrn = False                     
-			# ---------------- ricrea i layer ----------------
-			# si potrebbero anche aggiornare i layer esistenti
-#			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
-#			self.layLibMisur = self.cLayer
-#			self.cLayer.setLabelsEnabled(True)
-#			print('Layer vertici misurati completato')
-#			self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
-#			self.layLibRibat = self.cLayer
-#			self.cLayer.setLabelsEnabled(True)
-#			print('Layer vertici ribattuti completato')
-#			self.creaLineLayer('Rilievo_contorni',self.RilCtrn,self.RilSty,self.misurati)
-#			self.layLibCtrn = self.cLayer
-#			# ------ attiva la simbologia categorizzata per i contorni -------
-#			myRen = catSymbol(
-#				self.cLayer.geometryType(),
-#				'TRATTO',
-#					[
-#						['NC','#000000','nero continuo'],
-#						['RC','#ff0000','rosso continuo'],
-#						['NT','#000000','nero tratteggiato'],
-#						['RT','#ff0000','rosso tratteggiato'],
-#						['NP','#000000','nero puntinato'],
-#						['RP','#ff0000','rosso puntinato']                       
-#					]
-#			)
-#			self.cLayer.setRenderer(myRen)
-#			print('Layer contorni libretto completati')
-			# ----------- collimazione a 3 PF (rototraslazione) ------------
-			# NB: ricordare che in caso di mancata collimazione a 3 PF
-			#      i collimati coincidono con i misurati
+				layLibCtrn = False
+                
 			for i0,j0 in enumerate(listaPf):
 				p,x0,y0,z = pointArchivioCds(self.misurati,j0)
-				p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
+				p,e0,n0,q = pointArchivioCds(self.edmPf,j0)
 				for i1 in range(i0,1):
 					j1 = listaPf[i1]
 					p,x1,y1,z = pointArchivioCds(self.misurati,j1)
-					p,e1,n1,z = pointArchivioCds(self.edmPf,j1) 
+					p,e1,n1,q = pointArchivioCds(self.edmPf,j1) 
 				for i2 in range(i0,2):
 					j2 = listaPf[i2]
 					p,x2,y2,z = pointArchivioCds(self.misurati,j2)
-					p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                    
+					p,e2,n2,q = pointArchivioCds(self.edmPf,j2)                    
     
 			barPFuff = []
 			barPFuff.append((e0+e1+e2)/3)
 			barPFuff.append((n0+n1+n2)/3)
 			barPFuff.append(0)
-			#print("baricentro PF (TAF)",barPFuff)
+			print("baricentro PF (TAF)",barPFuff)
 
 			barPFcol = []
 			barPFcol.append((x0+x1+x2)/3)
 			barPFcol.append((y0+y1+y2)/3)
 			barPFcol.append(0)
-			#print("baricentro PF (collimati)",barPFcol)        
+			print("baricentro PF (collimati)",barPFcol)        
 
 			scartoX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
-			scartoY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)        
-			#print("scartoX",scartoX)
-			#print("scartoY",scartoY)                    
-			if len(listaPf) >= 3:
-				self.collimati = copy.deepcopy(self.misurati)
-				# ricarica le coordinate origine
-				oldCds = []
-				for i in listaPf:
-					c,x,y,z = pointArchivioCds(self.edmPf,i)
-					oldCds.append([x,y,z])                    
-				#print("coordinate origine",newCds)
-				#print("coordinate destinazione",oldCds)                
-				self.collimati = collimazione3PF(newCds,oldCds,self.collimati)
-				for n in range(0,len(self.collimati)):                
-					self.collimati[n][1],self.collimati[n][2] = self.collimati[n][1]+scartoX+deltaX,self.collimati[n][2]+scartoY+deltaY                
-				# crea layer vertici collimati
-				self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
-				self.cLayer.setLabelsEnabled(True)
-				self.layLibCollim = self.cLayer
-				print('Layer vertici collimati su PF completato')
-				self.errorePF()                
-				if layLibCtrn == True:   
-					QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)                
-					self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
-					self.layLibCtrn = self.cLayer
-					# ------ attiva la simbologia categorizzata per i contorni -------
-					myRen = catSymbol(
-						self.cLayer.geometryType(),
-						'TRATTO',
-						[
-							['NC','#000000','nero continuo'],
-							['RC','#ff0000','rosso continuo'],
-							['NT','#000000','nero tratteggiato'],
-							['RT','#ff0000','rosso tratteggiato'],
-							['NP','#000000','nero puntinato'],
-							['RP','#ff0000','rosso puntinato']                       
-						]
-					)
-					self.cLayer.setRenderer(myRen)               
-				self.bCollimList.setEnabled(True)
-				self.bErrPf.setEnabled(True)
-				self.bDistPf.setEnabled(True)
-				self.bBaric.setEnabled(True) 
-				self.misurati = backupmisurati
+			scartoY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)
+			print("scartoX",scartoX,"scartoY",scartoY)
 
+			# crea layer vertici collimati
+			self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
+			self.cLayer.setLabelsEnabled(True)
+			self.layLibCollim = self.cLayer
+			print('Layer vertici collimati su PF completato')
+                
+			if layLibCtrn == True:   
+				QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)                
+				self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
+				self.layLibCtrn = self.cLayer
+				# ------ attiva la simbologia categorizzata per i contorni -------
+				myRen = catSymbol(
+					self.cLayer.geometryType(),
+					'TRATTO',
+					[
+						['NC','#000000','nero continuo'],
+						['RC','#ff0000','rosso continuo'],
+						['NT','#000000','nero tratteggiato'],
+						['RT','#ff0000','rosso tratteggiato'],
+						['NP','#000000','nero puntinato'],
+						['RP','#ff0000','rosso puntinato']                       
+					]
+				)
+				self.cLayer.setRenderer(myRen)               
+			self.bCollimList.setEnabled(True)
+			self.bErrPf.setEnabled(True)
+			self.bDistPf.setEnabled(True)
+			self.bBaric.setEnabled(True) 
+			self.misurati = backupmisurati
+			self.errorePF()                
+                
 		self.expActCol.setEnabled(True)                 
 #	---------- validation functions --------------------
 
@@ -3212,7 +3154,7 @@ class topog4qgis:
 			calcola e stampa le distanze misurate
 		"""
 		pfList = pfLista(self.libretto)
-#		print "trovati i PF:",pfList,"nel libretto"
+#		print("trovati i PF:",pfList,"nel libretto")
 		print('Stampa delle distanze misurate fra PF')
 		for i0,n0 in enumerate(pfList):
 			j,x0,y0,z = pointArchivioCds(self.misurati,n0)
@@ -3305,7 +3247,7 @@ class topog4qgis:
 			print('vertice',cod)
 			# cerco tutti le stazioni che lo mirano
 			for v in self.archivio:
-# 				print "controllo",v[0],v[5]
+# 				print("controllo",v[0],v[5])
 				if v[0] == cod and v[5] != cod:	# scarto la stazione che mira sè stessa
 					print('mirato dalla stazione',v[5])
 					lst.append(v[5])
@@ -3381,7 +3323,7 @@ class topog4qgis:
 	def esportaRilCol(self):
 		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','~','*.csv')
 		file = codecs.open(nameToExp[0], 'w', encoding='utf-8', errors='ignore')
-		file.write("punto"+","+"x"+","+"y"+","+"z"+","+"note"+"\r\n")        
+		file.write("punto"+","+"e"+","+"n"+","+"q"+","+"note"+"\r\n")        
 		for n in range(0,len(self.collimati)):                
 			note = str(self.collimati[n][4])
 			if note == 'gps': note = ''			
