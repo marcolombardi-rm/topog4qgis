@@ -10,7 +10,7 @@ category=Vector
 ;
 
 ; tag separati da virgole. Spazi ammessi
-tags=cad,vector,survey
+tags=catasto,pregeo,cad,vector,survey
 
 homepage=https://github.com/marcolombardi-rm/topog4qgis/wiki
 tracker=https://github.com/marcolombardi-rm/topog4qgis/issues
