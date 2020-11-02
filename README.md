@@ -2,7 +2,7 @@ topog4qgis v0.3.1
 ==========
 VERSIONE ITALIANA
 =================
-Plugin QGis per la trattazione di libretti PreGeo (atti di aggiornamento catastale)
+Plugin QGis per la trattazione di libretti PreGeo (atti di aggiornamento catastale) su QGIS
 
 topo4qgis è un plugin per QGIS v.3.xx che consente il trattamento di rilievi celerimetrici con strumentazione ottico-digitale (teodolite, teodolite + distanziometro, stazione totale, ecc.) o con strumentazione gps.
 Il plugin si occupa di
@@ -16,9 +16,9 @@ Nella versione attuale del plugin, i dati sono inseriti mediante il listato dell
 
 Il plugin è strettamente legato al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia; la gestione del rilievo è comunque sufficientemente generale da risultare utile, così almeno speriamo, in situazioni anche non nazionali.
 
-Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve per l'utilizzo.
+Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo.
 
-Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER.
+Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA.
 
 Giuliano Curti (original author) e Giuseppe Patti (contributor)
 
