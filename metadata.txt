@@ -2,7 +2,7 @@
 name=topog4qgis
 qgisMinimumVersion=3.0
 description= Il tool permette di importare libretti in formato Pregeo (.dat e .pdf) e di elaborarli per la visualizzazione su QGIS 3 | Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo)
-version=version 0.3.1
+version=version 0.3.2
 author=Marco Lombardi (contributor and actual maintainer)
 email=marco.lombardi.rm@gmail.com
 about= Thanks to Giuliano Curti (original author) and Giuseppe Patti (contributor)

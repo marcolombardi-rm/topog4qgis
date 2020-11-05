@@ -1083,10 +1083,8 @@ def pfLista(libretto):
 	"""
 	list = []
 	for line in libretto:
-		tmp = line.split('|')
-		if tmp[0] == '2':
-			if '/' in tmp[1]:
-				list.append(tmp[1])
+		if "/" in line[0]:        
+			list.append(line[0])           
 	return list
 
 # ---------- operation functions ---------
@@ -1809,6 +1807,7 @@ class topog4qgis:
 		self.bImpEDM.setEnabled(True)
 		self.bImpLib.setEnabled(True)
 		self.bPfTaf.setDisabled(True)
+		self.bPSR.setDisabled(True)        
 		self.bViewLib.setDisabled(True)
 		self.bPfRil.setDisabled(True)
 		self.bDistPfRil.setDisabled(True)
@@ -1861,7 +1860,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.1")
+		self.dlg.setWindowTitle("topog4qgis v0.3.2")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -1880,10 +1879,15 @@ class topog4qgis:
 		mFile.addAction(self.bImpLib)
 		self.bImpLib.setDisabled(True)
 
-		self.bPfTaf = QAction(QIcon(''),'Importa PF da Taf',self.dlg)        
+		self.bPfTaf = QAction(QIcon(''),'Importa PF da TAF',self.dlg)        
 		self.bPfTaf.triggered.connect(self.importaPfDaTaf)
 		mFile.addAction(self.bPfTaf)
 		self.bPfTaf.setDisabled(True)
+        
+		self.bPSR = QAction(QIcon(''),'Importa PSR/PF da (.csv)',self.dlg)        
+		self.bPSR.triggered.connect(self.importaPSR)
+		mFile.addAction(self.bPSR)
+		self.bPSR.setDisabled(True)        
 
 		expMenu = QMenu('Esporta (.csv)', self.dlg)
 		self.expActRil = QAction('Rilievo elaborato', self.dlg)
@@ -2473,6 +2477,7 @@ class topog4qgis:
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
 			self.bPfTaf.setEnabled(True)
+			self.bPSR.setEnabled(True)            
 			self.bViewLib.setEnabled(True)
 			self.bPfRil.setEnabled(True)
 			self.bDistPfRil.setEnabled(True)
@@ -2620,7 +2625,7 @@ class topog4qgis:
 		if len(self.edmPf):
 			result = QMessageBox.question(
 				self.iface.mainWindow(),
-				"importaPfDaTaf",
+				"importa PF da TAF",
 				"I punti fiduciali sono già disponibili, vuoi sovrascriverli?",
 				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 			if result == QMessageBox.No:
@@ -2629,7 +2634,7 @@ class topog4qgis:
 				# cancella il layer dei PF
 				QgsProject.instance().removeMapLayer(self.layEdmPf)
 		# cerca i PF
-		pfList = pfLista(self.libretto)
+		pfList = pfLista(self.misurati)
 		if pfList:
 			lastfgCod = ""
 			n = 0
@@ -2704,7 +2709,7 @@ class topog4qgis:
 							#lastfgCod = fgCod				
 				else:
 					self.iface.messageBar().pushMessage(
-					"importaPfDaTaf",
+					"importa PF da TAF",
 					"Devi darmi un nome di file valido",
 					level=Qgis.Warning,
 					duration=4
@@ -2725,21 +2730,111 @@ class topog4qgis:
 				#self.bPRP.setEnabled(True)
 		else:
 			self.iface.messageBar().pushMessage(
-				"importaPfDaTaf",
+				"importa PF da Taf",
 				"Attenzione: il rilievo non sembra contenere punti fiduciali",
 				level=Qgis.Warning,
 				duration=4
 			)
             
+	def importaPSR(self):
+		if len(self.edmPf):
+			result = QMessageBox.question(
+				self.iface.mainWindow(),
+				"importa PSR da (.csv)",
+				"I punti fiduciali sono già disponibili, vuoi sovrascriverli?",
+				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+			if result == QMessageBox.No:
+				return
+			else:
+				# cancella il layer dei PF
+				QgsProject.instance().removeMapLayer(self.layEdmPf)
+		# cerca i PF
+		pfList = pfLista(self.misurati)
+		if pfList:
+			# legge file
+			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+			for i in range(0,len(pfList)):
+				pf = pfList[i].split(';')[0]	# prende uno qualsiasi, il primo                
+				if fname[0] != "":
+					# legge file
+					import codecs
+					f = codecs.open(fname[0], 'r', encoding='utf-8', errors='ignore')
+					for data in f:
+						# pulisce la riga
+						data = data.rstrip('\n')
+						data = data.rstrip('\r')
+						nome = data.split(";")[0]
+						x = data.split(";")[1]
+						y = data.split(";")[2]                    
+						if pf == nome:                        
+							print("Trovato",nome,x,y)
+							self.edmPf.append([nome,float(x),float(y),0])                            
+				else:
+					self.iface.messageBar().pushMessage(
+					"importa PSR da (.csv)",
+					"Devi darmi un nome di file valido",
+					level=Qgis.Warning,
+					duration=4
+				)
+		if not pfList:
+			# legge file
+			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+			for i in range(0,len(self.misurati)):
+				psr = self.misurati[i][0]                
+				if fname[0] != "":
+					# legge file
+					import codecs
+					f = codecs.open(fname[0], 'r', encoding='utf-8', errors='ignore')
+					for data in f:
+						# pulisce la riga
+						data = data.rstrip('\n')
+						data = data.rstrip('\r')
+						nome = data.split(";")[0]
+						x = data.split(";")[1]
+						y = data.split(";")[2]                    
+						if psr == nome:                        
+							print("Trovato",nome,x,y)
+							self.edmPf.append([nome,float(x),float(y),0])                            
+				else:
+					self.iface.messageBar().pushMessage(
+					"importa PSR da (.csv)",
+					"Devi darmi un nome di file valido",
+					level=Qgis.Warning,
+					duration=4
+				)            
+		# crea layer PF
+		if len(self.edmPf):
+			self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
+			self.layEdmPf = self.cLayer
+			self.cLayer.setLabelsEnabled(True)
+			print('Layer punti fiduciali completato')
+			# attiva i menu
+			self.bGeoref.setEnabled(True)
+			self.bPfUff.setEnabled(True)
+			self.bDistPfUff.setEnabled(True)
+			#self.bRAP.setEnabled(True)
+			#self.bPAP.setEnabled(True)
+			#self.bRRP.setEnabled(True)
+			#self.bPRP.setEnabled(True)
+		else:
+			self.iface.messageBar().pushMessage(
+				"importa PSR da (.csv)",
+				"Attenzione: il rilievo non sembra contenere punti fiduciali",
+				level=Qgis.Warning,
+				duration=4
+			)            
+            
 #	------------ calcolo parametri RTR  --------------------
 
 	def parametriRTR(self):
-		listaPf = pfLista(self.libretto)
+		listaPf = []    
+		for n in range(0,len(self.edmPf)):
+			listaPf.append(self.edmPf[n][0])        
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))
 		for i0,j0 in enumerate(listaPf):
-			p,x0,y0,z = pointArchivioCds(self.misurati,j0)
-			p,e0,n0,z = pointArchivioCds(self.edmPf,j0)
+			p,x0,y0,z = pointArchivioCds(self.misurati,j0)            
+			p,e0,n0,z = pointArchivioCds(self.edmPf,j0)            
 			for i1 in range(i0,1):
 				j1 = listaPf[i1]
 				p,x1,y1,z = pointArchivioCds(self.misurati,j1)
@@ -2861,7 +2956,9 @@ class topog4qgis:
 		dX, dY, ang = self.parametriRTR()
 		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo        
-		listaPf = pfLista(self.libretto)
+		listaPf = []    
+		for n in range(0,len(self.edmPf)):
+			listaPf.append(self.edmPf[n][0]) 
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))                          
 		print("Nel libretto sono presenti i PF",listaPf)
@@ -2965,7 +3062,7 @@ class topog4qgis:
 			quì è calcolato solo l'errore nel piano XY
 		"""
 		# controlla i PF misurati nel rilievo
-		listaPf = pfLista(self.libretto)
+		listaPf = pfLista(self.misurati)
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))        
 		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
@@ -2996,7 +3093,7 @@ class topog4qgis:
         
 	def distanzePF(self): 
 		# controlla i PF misurati nel rilievo
-		listaPf = pfLista(self.libretto)
+		listaPf = pfLista(self.misurati)
 		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
 			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
 				listaPf.append(pf[0])
@@ -3050,7 +3147,7 @@ class topog4qgis:
 		"""
 			calcola e stampa le distanze fra PF ufficiali
 		"""
-		pfList = pfLista(self.libretto)
+		pfList = pfLista(self.misurati)
 		if len(pfList) <= 0:				# in assenza di libretto o di PF nel libretto
 			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
 				pfList.append(pf[0])
@@ -3093,7 +3190,7 @@ class topog4qgis:
 			upgrade1: fare stampa ordinata con min e max
 			upgrade2: per gestire distanze su fogli/comuni diversi;
 		"""
-		pfList = pfLista(self.libretto)
+		pfList = pfLista(self.misurati)
 		if pfList:
 			pfCod,fgCod,comCod = pfList[0].split('/')	# prende uno qualsiasi, il primo
 			fgAll = fgCod[3]	# elimina ultimo carattere
@@ -3147,13 +3244,13 @@ class topog4qgis:
 
 	def elencoPfRilevati(self):
 		print('Elenco dei PF rilevati')
-		printList(pfLista(self.libretto))
+		printList(pfLista(self.misurati))
 
 	def distPfMisurate(self):
 		"""
 			calcola e stampa le distanze misurate
 		"""
-		pfList = pfLista(self.libretto)
+		pfList = pfLista(self.misurati)
 #		print("trovati i PF:",pfList,"nel libretto")
 		print('Stampa delle distanze misurate fra PF')
 		for i0,n0 in enumerate(pfList):
@@ -3309,25 +3406,25 @@ class topog4qgis:
 			drawStar(self,cod,lst,self.archivio)
 
 	def esportaRilElab(self):
-		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','~','*.csv')
+		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','elaborato','*.csv')
 		file = codecs.open(nameToExp[0], 'w', encoding='utf-8', errors='ignore')
-		file.write("punto"+","+"x"+","+"y"+","+"z"+","+"note"+"\r\n")        
+		file.write("punto"+";"+"x"+";"+"y"+";"+"z"+";"+"note"+"\r\n")        
 		for n in range(0,len(self.misurati)):
 			note = str(self.misurati[n][4])
 			if note == 'gps': note = ''        
-			line = str(self.misurati[n][0]) + "," + str(round(self.misurati[n][1],3)) + "," + str(round(self.misurati[n][2],3)) + "," + str(round(self.misurati[n][3],3)) + "," + note + "\r\n"        
+			line = str(self.misurati[n][0]) + ";" + str(round(self.misurati[n][1],3)) + ";" + str(round(self.misurati[n][2],3)) + ";" + str(round(self.misurati[n][3],3)) + ";" + note + "\r\n"        
 			file.write(line)
 		file.close()
 		print("Rilievo elaborato esportato")        
         
 	def esportaRilCol(self):
-		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','~','*.csv')
+		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','rototraslato','*.csv')
 		file = codecs.open(nameToExp[0], 'w', encoding='utf-8', errors='ignore')
-		file.write("punto"+","+"e"+","+"n"+","+"q"+","+"note"+"\r\n")        
+		file.write("punto"+";"+"e"+";"+"n"+";"+"q"+";"+"note"+"\r\n")        
 		for n in range(0,len(self.collimati)):                
 			note = str(self.collimati[n][4])
 			if note == 'gps': note = ''			
-			line = str(self.collimati[n][0]) + "," + str(round(self.collimati[n][1],3)) + "," + str(round(self.collimati[n][2],3)) + "," + str(round(self.collimati[n][3],3)) + "," + note + "\r\n"        
+			line = str(self.collimati[n][0]) + ";" + str(round(self.collimati[n][1],3)) + ";" + str(round(self.collimati[n][2],3)) + ";" + str(round(self.collimati[n][3],3)) + ";" + note + "\r\n"        
 			file.write(line)
 		file.close()
 		print("Rilievo rototraslato esportato")            
