@@ -737,7 +737,7 @@ def loadFile(fname,extent):
 			except: 
 		        # there are no annotations on this page
 				pass				
-	else:	
+	if extent == 'dat':	
 		f = open(fname, 'r')
 		try:
 			f.readline()
@@ -749,7 +749,7 @@ def loadFile(fname,extent):
 			# pulisce la riga
 			data = data.rstrip('\n')
 			data = data.rstrip('\r')
-			lib.append(data)    			
+			lib.append(data)	
 	return lib
 
 def openLibretto_vertici(libretto):
@@ -1753,8 +1753,8 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.2'
-	build_date = '2020-29-04'
+	vers = '0.3.2'
+	build_date = '2020-11-05'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -1806,6 +1806,7 @@ class topog4qgis:
 		# ------ disattiva i menu --------
 		self.bImpEDM.setEnabled(True)
 		self.bImpLib.setEnabled(True)
+		self.bImpCSV.setEnabled(True)        
 		self.bPfTaf.setDisabled(True)
 		self.bPSR.setDisabled(True)        
 		self.bViewLib.setDisabled(True)
@@ -1872,19 +1873,22 @@ class topog4qgis:
 		tmp.triggered.connect(self.new)
 		mFile.addAction(tmp)
 
-		#tmp = QAction(QIcon(''),'Importa Libretto',self.dlg)
-		self.bImpLib = QAction(QIcon(''),'Importa Libretto',self.dlg)
+		self.bImpLib = QAction(QIcon(''),'Importa Libretto (.dat .pdf)',self.dlg)
 		self.bImpLib.triggered.connect(self.importaLibretto)
-		#mFile.addAction(tmp)
 		mFile.addAction(self.bImpLib)
 		self.bImpLib.setDisabled(True)
+        
+		self.bImpCSV = QAction(QIcon(''),'Importa Rilievo (.csv)',self.dlg)
+		self.bImpCSV.triggered.connect(self.importaCSV)
+		mFile.addAction(self.bImpCSV)
+		self.bImpCSV.setDisabled(True)        
 
 		self.bPfTaf = QAction(QIcon(''),'Importa PF da TAF',self.dlg)        
 		self.bPfTaf.triggered.connect(self.importaPfDaTaf)
 		mFile.addAction(self.bPfTaf)
 		self.bPfTaf.setDisabled(True)
         
-		self.bPSR = QAction(QIcon(''),'Importa PSR/PF da (.csv)',self.dlg)        
+		self.bPSR = QAction(QIcon(''),'Importa PF/PSR da (.csv)',self.dlg)        
 		self.bPSR.triggered.connect(self.importaPSR)
 		mFile.addAction(self.bPSR)
 		self.bPSR.setDisabled(True)        
@@ -1905,7 +1909,7 @@ class topog4qgis:
 		# ---------- referencng menu --------------
 		mGeoref = mb.addMenu('Elaborazione')
 
-		self.bGeoref = QAction(QIcon(''),'Rototrasla su PF',self.dlg)        
+		self.bGeoref = QAction(QIcon(''),'Rototrasla su PF/PSR',self.dlg)        
 		self.bGeoref.triggered.connect(self.georeferencer)
 		mGeoref.addAction(self.bGeoref)
 		self.bGeoref.setDisabled(True)
@@ -2285,6 +2289,32 @@ class topog4qgis:
 
 #	--------------------- I/O functions -----------
 
+	def importaCSV(self):
+		root = QgsProject.instance().layerTreeRoot()
+		# ---------- carica il libretto delle misure -----------
+		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+		extent = fname[0][-3:]		
+		if fname[0] != "":
+			f = open(fname[0], 'r')
+			try:
+				f.readline()
+			except:
+				f = codecs.open(fname[0], 'r', 'cp1252')
+			for data in f:
+				data = data.rstrip('\n')
+				data = data.rstrip('\r')
+				data = data.split(';')                
+				print(data)
+		# ---------parte grafica --------------
+		# crea layer vertici misurati
+		if len(self.misurati):
+			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
+			self.layLibMisur = self.cLayer
+			self.cLayer.setLabelsEnabled(True)
+			print("Layer vertici misurati completato")
+		else:
+			print("Non ci sono vertici misurati nel libretto")                
+
 	def importaLibretto(self):
 		root = QgsProject.instance().layerTreeRoot()
 		msg = ''
@@ -2295,8 +2325,8 @@ class topog4qgis:
 		)
 		# ---------- carica il libretto delle misure -----------
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.dat *.pdf')
-		extent = fname[0][-3:]		
-		if fname[0] != "":
+		extent = fname[0][-3:]		    
+		if fname[0] != "":        
 			isCel = False
 			isGps = False
 			self.libretto = loadFile(fname[0],extent)
@@ -2312,7 +2342,7 @@ class topog4qgis:
 			print("Trovati %d allineamenti e squadri" % (len(RilAll)))
 			# legge contorni del rilievo
 			self.RilCtrn,self.RilSty = openLibretto_contorni(self.libretto)
-			print("trovati %d contorni nel libretto" % (len(self.RilCtrn)))
+			print("Trovati %d contorni nel libretto" % (len(self.RilCtrn)))
 			# ----------- tratta il libretto ------------------------
 			# in questa versione trattiamo prioritariamente le letture gps;
 			# se ci sono divengono lo spazio iniziale; in caso negativo allo scopo
@@ -2443,7 +2473,7 @@ class topog4qgis:
 				self.cLayer.setLabelsEnabled(True)
 				print("Layer vertici misurati completato")
 			else:
-				print("non ci sono vertici misurati nel libretto")
+				print("Non ci sono vertici misurati nel libretto")
 			# crea layer dei ribattuti
 			#if len(self.ribattuti):
 			#	self.creaPointLayer('Rilievo_vertici_ribattuti',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.ribattuti)
