@@ -2293,7 +2293,9 @@ class topog4qgis:
 		root = QgsProject.instance().layerTreeRoot()
 		# ---------- carica il libretto delle misure -----------
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
-		extent = fname[0][-3:]		
+		extent = fname[0][-3:]
+		n = 0
+		tmp = []		
 		if fname[0] != "":
 			f = open(fname[0], 'r')
 			try:
@@ -2301,19 +2303,38 @@ class topog4qgis:
 			except:
 				f = codecs.open(fname[0], 'r', 'cp1252')
 			for data in f:
+				n = n+1            
 				data = data.rstrip('\n')
 				data = data.rstrip('\r')
 				data = data.split(';')                
-				print(data)
+				tmp.append(data[0])                
+				tmp.append(float(data[1]))
+				tmp.append(float(data[2]))
+				tmp.append(float(data[3]))
+				tmp.append(data[4])                
+				tmp.append('') 
+				tmp.append(n)                
+				self.misurati.append(tmp)
+				tmp = []                                
 		# ---------parte grafica --------------
 		# crea layer vertici misurati
-		if len(self.misurati):
+		if len(self.misurati):        
 			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 			self.layLibMisur = self.cLayer
-			self.cLayer.setLabelsEnabled(True)
+			self.cLayer.setLabelsEnabled(True)        
 			print("Layer vertici misurati completato")
+			# attiva le voci di menu
+			self.bImpEDM.setEnabled(True)
+			self.bImpLib.setEnabled(True)
+			self.bPfTaf.setEnabled(True)
+			self.bPSR.setEnabled(True)            
+			self.bViewLib.setEnabled(True)
+			self.bPfRil.setEnabled(True)
+			self.bDistPfRil.setEnabled(True)
+			self.bDistPfArch.setDisabled(True)
+			self.bMisurList.setEnabled(True)            
 		else:
-			print("Non ci sono vertici misurati nel libretto")                
+			print("Non ci sono vertici misurati nel libretto")              
 
 	def importaLibretto(self):
 		root = QgsProject.instance().layerTreeRoot()
