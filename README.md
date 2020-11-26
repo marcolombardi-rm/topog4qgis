@@ -1,22 +1,24 @@
-topog4qgis v0.3.2
+topog4qgis v0.3.1
 ==========
 VERSIONE ITALIANA
 =================
-Plugin QGis per la trattazione di libretti PreGeo (atti di aggiornamento catastale) su QGIS
+topog4qgis e' un plugin utile all'elaborazione di libretti PreGeo (.dat e .pdf) e alla trattazione di liste di punti (.csv) su QGIS mediante opportuna rototraslazione ai minimi quadrati.
 
-topo4qgis è un plugin per QGIS v.3.xx che consente il trattamento di rilievi celerimetrici con strumentazione ottico-digitale (teodolite, teodolite + distanziometro, stazione totale, ecc.) o con strumentazione gps.
-Il plugin si occupa di
-- trattare i rilievi celerimetrici eseguiti da diverse stazioni, 
-- trattare i rilievi GPS e rilievi misti TPS-GPS (sperimentale dalla versione 0.2),
-- verificare i punti ribattuti e collegare, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente.
+L'elaborazione di libretti PreGeo (.dat e .pdf)  e' strettamente legata al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia.
 
-La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilità di un estratto di mappa digitale (*.edm) o della tabella dei punti fiduciali (*.taf) consente di georiferire il rilievo nello spazio assoluto ufficiale.
-Nel rilievo possono essere trattati anche contorni di unità catastali (particelle, fabbricati, linee dividenti, ecc.).
-Nella versione attuale del plugin, i dati sono inseriti mediante il listato delle letture celerimetriche o gps, nella forma comunemente chiamata di "libretto" di campagna"; i dati in uscita sono restituiti sotto forma di shp file di tipo puntuale e lineare.
+Il plugin puo' elaborare rilievi celerimetrici, GNSS, misti TPS-GNSS; verificando i punti ribattuti e collegando, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente.  Vengono elaborati dal plugin punti definiti con allineamenti e squadri (riga 4 e 5).
 
-Il plugin è strettamente legato al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia; la gestione del rilievo è comunque sufficientemente generale da risultare utile, così almeno speriamo, in situazioni anche non nazionali.
+Se presenti,  sono estratti ed elaborati, anche contorni di unita' catastali (particelle, fabbricati, linee dividenti, ecc.) definite con riga 7.
 
-Siamo disponibili a, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo.
+La trattazione di liste di punti (.csv), dalla versione 0.3.2, e' invece slegata dai formati PreGeo consentendo quindi all'utente di lavorare su un rilievo gia' elaborato da altri software.
+
+La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilita' di un estratto di mappa digitale (.edm) o della tabella dei punti fiduciali (.taf o .csv) consente di georeferire mediante rototraslazione ai minimi quadrati il rilievo nello spazio assoluto ufficiale.
+
+Dalla versione 0.3.1 e' anche possibile l'esportazione in formato .csv del rilievo elaborato e del rilievo rototraslato ai minimi quadrati.
+
+Siamo disponibili, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. 
+
+All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo del plugin.
 
 Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA.
 
@@ -28,7 +30,7 @@ ENGLISH VERSION
 ===============
 QGis Plugin for the italian cadastre update procedure (PreGeo)
 
-topog4qgis is a QGis 3.xx plugin allowing the user to manage classical and gps surveys.
+topog4qgis is a QGis 3 plugin allowing the user to manage classical and gps surveys.
 Following operations are supported:
 - manage surveys from different stations
 - verify double points
