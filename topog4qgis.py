@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-11-01
+        updated on           : 2020-11-25
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -749,7 +749,18 @@ def loadFile(fname,extent):
 			# pulisce la riga
 			data = data.rstrip('\n')
 			data = data.rstrip('\r')
-			lib.append(data)	
+			lib.append(data)
+	if extent == 'emp':	
+		f = open(fname, 'r')
+		try:
+			f.readline()
+		except:
+			f = codecs.open(fname, 'r', 'cp1252')
+		for data in f:
+			# pulisce la riga
+			data = data.rstrip('\n')
+			data = data.rstrip('\r')
+			lib.append(data)    		            
 	return lib
 
 def openLibretto_vertici(libretto):
@@ -1754,7 +1765,7 @@ class navigatorDlg(QDialog):
 
 class topog4qgis:
 	vers = '0.3.2'
-	build_date = '2020-11-05'
+	build_date = '2020-11-25'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
