@@ -10,7 +10,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
-        updated on           : 2020-11-01
+        updated on           : 2021-01-03
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -749,7 +749,18 @@ def loadFile(fname,extent):
 			# pulisce la riga
 			data = data.rstrip('\n')
 			data = data.rstrip('\r')
-			lib.append(data)	
+			lib.append(data)
+	if extent == 'emp':	
+		f = open(fname, 'r')
+		try:
+			f.readline()
+		except:
+			f = codecs.open(fname, 'r', 'cp1252')
+		for data in f:
+			# pulisce la riga
+			data = data.rstrip('\n')
+			data = data.rstrip('\r')
+			lib.append(data)    		            
 	return lib
 
 def openLibretto_vertici(libretto):
@@ -766,7 +777,7 @@ def openLibretto_vertici(libretto):
 	celerimensura = []
 	stazione = []
 	nRiga = -1	# così il primo valore è zero
-	isFirst =True
+	isFirst = True
 	codStaz = 0	# si potrebbe usare anche questo come flag della prima stazione
 	for line in libretto:
 		nRiga += 1	
@@ -1034,19 +1045,26 @@ def lettureFraStazioni(libretto):
 	return lst
 
 def osservazioniCelerimetriche(libretto):
-	#print('cerco le stazioni')
+	print('cerco le stazioni')
 	stazList = stazioniLista(libretto)
 	# cerca le lettura fra stazioni
 	lst = []
 	for s0 in stazList:
+		print("Stazione",s0)
 		for k,l0 in enumerate(libretto):
 			tmp0 = l0.split("|")
 			if tmp0[0] == '1' and tmp0[1] == s0:
-				for j in range(k+1,len(libretto)):
-					l1 = libretto[j]
-					tmp1 = l1.split("|")
-					if tmp1[0] == '2':
-						print('Stazione',s0,'->',l1)                        
+				#print(tmp0)
+				break 
+		for j in range(k+1,len(libretto)):
+			tmp1 = libretto[j].split("|")
+			if tmp1[0] == '1':
+				break	# ha trovato un'altra stazione            
+			if tmp1[0] == '2':            
+				if len(tmp1) == 8:	# punto dotato di altimetria
+					print("\tpunto",tmp1[1],"ao",tmp1[2],"av",tmp1[3],"dr",tmp1[4],"hp",tmp1[5],"note",tmp1[6])
+				else:       
+					print("\tpunto",tmp1[1],"ao",tmp1[2],"do",tmp1[3],"note",tmp1[4])                
 
 def distanzeRidotte(archivio,a_giro):
 	"""
@@ -1059,14 +1077,12 @@ def distanzeRidotte(archivio,a_giro):
 		cod = tmp.pop(0)		# questo elimina il primo campo	
 		if cod == '1'or cod == '2':	# così scarta tutto quello che non interessa
 			tmp.pop()				# elimina l'ultimo campo sempre vuoto
-#			print("Riga:",nRiga,tmp[1])
 			if ',' not in tmp[1]:	# altrimenti sarebbe una lettura gps
 				# E' una stazione?
 				if cod == '1':
 					staz = tmp[0]
-#					print("stazione",codStaz)
 				else:
-					if len(tmp) == 6:	# punto dotato di altimetria
+					if len(tmp) == 6:	# punto dotato di altimetria                    
 						pnt = tmp[0]
 						# converte zenith in radianti
 						av = toRad(float(tmp[2]),a_giro)
@@ -1074,7 +1090,7 @@ def distanzeRidotte(archivio,a_giro):
 						# calcolo la distanza ridotta
 						d = float(tmp[3])
 						dr = d*abs(math.cos(av))
-						list.append("distanza %5s - %20s: %12.3f" % (staz,pnt,dr))
+						print("distanza %s - %s: %12.3f, azimut %12.4f" % (staz,pnt,dr,float(tmp[1])))
 	return list
 
 def pfLista(libretto):
@@ -1144,7 +1160,7 @@ def polar2rect(rilievo,a_giro):
 		punto = rilievo[i]
 		cod = punto[0]
 		x,y,z = 0.0,0.0,0.0
-		nRiga = punto[-1]
+		nRiga = punto[-1]		
 		if len(punto) == 8 or len(punto) == 7:	# punto dotato di altimetria
 			# converte zenith in radianti
 			av = toRad(float(punto[2]),a_giro)
@@ -1161,19 +1177,22 @@ def polar2rect(rilievo,a_giro):
 				nota = ""                 
 		if len(punto) == 6:	# punto senza altimetria (NB: c'è sempre un campo vuoto alla fine)
 			dr = float(punto[2])
+			#print(dr)			
 			nota = punto[3]
+			#print(nota)			
 		#else:
 		#	dr = 0.0	# dovrebbe mettere tutto a zero
 		#	nota = 'polar2rect: numero di parametri non compatibili'
 		#	stazDiMira = 0
-		# converte azimuth in radianti
+		# converte azimuth in radianti		
 		ah = toRad(-float(punto[1]),a_giro)
 		# coordinate rettangolari nel piano orizzontale
 		x = dr*math.cos(ah)
 		y = dr*math.sin(ah)
+		#print(punto[0],"ah",fromRad(ah,a_giro),"av",fromRad(av,a_giro),"dr",dr,"nota",nota)		
 		# salva
 		coordRet.append([cod,x,y,z,nota,stazDiMira,nRiga])
-#		print 'punto %s %f %f %f' % (str(punto),x,y,z)
+		#print('punto %s %f %f %f' % (str(punto),x,y,z))        
 	return coordRet
 
 def rect2polar(x,y,z,x0,y0,z0,a_giro):
@@ -1182,12 +1201,13 @@ def rect2polar(x,y,z,x0,y0,z0,a_giro):
 		nella notazione angolare selezionata (a_giro)
 	"""
 	dx,dy,dz = x-x0,y-y0,z-z0
-	ah = fromRad(math.atan2(dy,dx),a_giro)
+	#print(dx,dy)    
+	ah = round(fromRad(math.atan2(dx,dy),a_giro)+(a_giro/4),4)
 	dr = math.sqrt(dx**2+dy**2)
 	# NB1: ricordare angolo nullo allo zenith
 	# NB2: questo va bene per il mio teodolite che ha il goniometro verticale ruotato
-	av = fromRad(math.atan2(dz,dr)+3*math.pi/2,a_giro)
-	d = math.sqrt(dr**2+dz**2)
+	av = round(fromRad(math.atan2(dz,dr)+3*math.pi/2,a_giro),4)
+	d = round(math.sqrt(dr**2+dz**2),3)
 	return ah,av,d
 
 def collimazioneStazione(rilievo,archivio,tipologia):
@@ -1227,21 +1247,21 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 	# controlla se la stazione è già stata osservata
 	newStaz = rilievo[0][0]
 	s1 = [0,0,0]
-#	print("nuova stazione",newStaz,"dalla posizione",0,0,0)
 	pos,x,y,z = pointArchivioCds(archivio,newStaz)
+	#print("nuova stazione",newStaz,"con posizione",x,y,z)    
 	if pos >= 0:
 		d1 = [x,y,z]
 #		print("alla posizione",x,y,z)
 		# stazione mirante
-		prevStaz = archivio[pos][5]
+		prevStaz = archivio[pos][5]        
 		pos,x,y,z = pointArchivioCds(rilievo,prevStaz)
 		if pos >= 0:
 			s2 = [x,y,z]
-#			print("la stazione mirante",prevStaz,"dalla posizione",x,y,z)
 			pos,x,y,z = pointArchivioCds(archivio,prevStaz)
+			#print("vista dalla stazione",prevStaz,"con posizione",x,y,z)            
 			if pos >= 0:
 				d2 = [x,y,z]
-#				print("alla posizione",x,y,z)
+				#print("alla posizione",x,y,z)
 				# matrice di trasformazione
 				if tipologia == 2:
 					for k in archivio:
@@ -1251,6 +1271,10 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 							xa = k[1]
 							ya = k[2]
 							#break
+						else:          
+							#print("NON trovato il punto stazione in archivio",newStaz)
+							#isFirst = False                            
+							break                         
 					for k in rilievo:
 						if newStaz == k[0]:
 							#print("trovato il punto stazione in rilievo",newStaz)
@@ -1258,6 +1282,10 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 							ea = k[1]
 							na = k[2]
 							#break
+						#else:          
+							#print("NON trovato il punto stazione in rilievo",newStaz)
+							#isFirst = False                            
+							#break                            
 					for k in archivio:		
 						if cod == k[0]:
 							#print("trovato il punto orientamento in archivio",cod)
@@ -1265,22 +1293,30 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 							xb = k[1]
 							yb = k[2]
 							#break
+						#else:          
+							#print("NON trovato il punto orientamento in archivio",cod)
+							#isFirst = False                            
+							#break                            
 					for k in rilievo:		
 						if cod == k[0]:
-							#print("trovato il punto orientamento in rilievo",cod)
+							print("trovato il punto orientamento in rilievo",cod)
 							#print('trovata',k)
 							eb = k[1]
 							nb = k[2]
 							#break
-					az_xy = math.atan2((xb-xa),(yb-ya))
-					az_en = math.atan2((eb-ea),(nb-na))
+						#else:          
+							print("NON trovato il punto orientamento in rilievo",cod)
+							#isFirst = False                            
+							#break                            
+					#az_xy = math.atan2((xb-xa),(yb-ya))
+					#az_en = math.atan2((eb-ea),(nb-na))
 					#print('az_xy',az_xy)
 					#print('az_en',az_en)
-					ang = az_en - az_xy
+					#ang = az_en - az_xy
 					#print('az_en - az_xy',ang)
 					#print(ang)
 				mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
-#				print("matrice di trasformazione",mat)
+				#print("matrice di trasformazione",mat)
 				collimati = trasformaPunti3D(rilievo,mat)
 			else:
 				print('la stazione mirante non è in archivio (questo errore non si dovrebbe MAI verificare)')
@@ -1334,9 +1370,70 @@ def collimazioneStazione(rilievo,archivio,tipologia):
 							#print(ang)
 						# matrice di trasformazione
 						mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
-#						print("matrice di trasformazione",mat)
+						#print("matrice di trasformazione",mat)
 						collimati = trasformaPunti3D(rilievo,mat)	# si può usare matrixMultiplication()
 						break
+	else:
+		print('la stazione',newStaz,'non è mirata da alcuna stazione precedente in archivio')
+	return collimati
+    
+def calcoloPoligonale(rilievo,archivio,a_giro):
+	ang = 0
+	#print("collimazione: ricevo archivio",archivio,"rilievo",rilievo)
+	collimati = []
+	# controlla se la stazione è già stata osservata
+	newStaz = rilievo[0][0]
+	s1 = [0,0,0]
+	pos,x,y,z = pointArchivioCds(archivio,newStaz)
+	#print("nuova stazione",newStaz,"con posizione",x,y,z)    
+	if pos >= 0:
+		d1 = [x,y,z]
+#		print("alla posizione",x,y,z)
+		# stazione mirante
+		prevStaz = archivio[pos][5]
+		pos,x,y,z = pointArchivioCds(rilievo,prevStaz)
+		if pos >= 0:
+			s2 = [x,y,z]
+			pos,x,y,z = pointArchivioCds(archivio,prevStaz)
+			#print("vista dalla stazione",prevStaz,"con posizione",x,y,z)            
+			if pos >= 0:
+				d2 = [x,y,z]
+				#print("alla posizione",x,y,z)
+				# matrice di trasformazione
+				for k in archivio:
+					if newStaz == k[0]:
+						#print("trovato il punto stazione in archivio",newStaz)
+						#print('coordinate',k)
+						x0 = k[1]
+						y0 = k[2]
+						z0 = k[3]                            
+						#break
+				for k in archivio:		
+					if prevStaz == k[0]:
+						#print("trovato il punto orientamento in archivio",prevStaz)
+						#print('coordinate',k)                        
+						for i in rilievo:
+							if i[0] == prevStaz:                               
+								az_dr = float(i[1])                                    
+								az_rv = fromRad(math.atan2(x-x0,y-y0),a_giro)+a_giro/4                                       
+						break
+				rilievo = polar2rect(rilievo,a_giro)                            
+				for k in rilievo:
+					if prevStaz == k[0]:                        
+						s2 = [k[1],k[2],k[3]]
+						#print(s2)                            
+						#break                    			                                                           
+				#print('az_dritto',az_dr)
+				#print('az_rovescio',az_rv)
+				ang = toRad(az_dr - az_rv,a_giro)-toRad(a_giro/2,a_giro)
+				#print('az_rovescio - az_dritto - a_giro',ang)
+				#ang = 0 
+				#print(s1,s2,d1,d2,ang)                    
+				mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
+				#print("matrice di trasformazione",mat)
+				collimati = trasformaPunti3D(rilievo,mat)
+			else:
+				print('la stazione mirante non è in archivio (questo errore non si dovrebbe MAI verificare)')
 	else:
 		print('la stazione',newStaz,'non è mirata da alcuna stazione precedente in archivio')
 	return collimati
@@ -1753,8 +1850,8 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.2'
-	build_date = '2020-11-05'
+	vers = '0.3.3'
+	build_date = '2020-12-27'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -1797,7 +1894,7 @@ class topog4qgis:
 		self.misurati = []	# archivio dei vertici misurati [cod,x,y,z,note]
 		self.ribattuti = []	# archivio dei vertici ribattuti
 		self.collimati= []	# archivio dei punti collimati con i PF
-		self.edmPf = []		# archivio PF
+		self.PfTAF = []		# archivio PF
 		self.edmVrts = []		# archivio vertici di particella dell'EdM
 		# variabili globali necessarie per consentire il rigenerazione dei layer dopo georeferenzazione
 		self.RilCtrn = []		# archivio dei contorni del libretto
@@ -1861,7 +1958,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.2")
+		self.dlg.setWindowTitle("topog4qgis v0.3.3")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
 		mb.setGeometry(0,0,270,120)
@@ -1883,7 +1980,7 @@ class topog4qgis:
 		mFile.addAction(self.bImpCSV)
 		self.bImpCSV.setDisabled(True)        
 
-		self.bPfTaf = QAction(QIcon(''),'Importa PF da TAF',self.dlg)        
+		self.bPfTaf = QAction(QIcon(''),'Importa PF da TAF (.taf)',self.dlg)        
 		self.bPfTaf.triggered.connect(self.importaPfDaTaf)
 		mFile.addAction(self.bPfTaf)
 		self.bPfTaf.setDisabled(True)
@@ -2017,15 +2114,15 @@ class topog4qgis:
 		mInquiry.addAction(self.bNavPol)
 		self.bNavPol.setDisabled(True)
 
-		self.bDistRid = QAction(QIcon(''),'Elenco distanze ridotte',self.dlg)        
+		self.bDistRid = QAction(QIcon(''),'Elenco distanze ridotte e azimut',self.dlg)        
 		self.bDistRid.triggered.connect(self.elencoDistRidotte)
 		mInquiry.addAction(self.bDistRid)
 		self.bDistRid.setDisabled(True)
 
-		self.bOssCeler = QAction(QIcon(''),'Elenco osservazioni celerimetriche',self.dlg)        
-		self.bOssCeler.triggered.connect(self.elencoOssCeler)
-		mInquiry.addAction(self.bOssCeler)
-		self.bOssCeler.setDisabled(True)
+		#self.bOssCeler = QAction(QIcon(''),'Elenco osservazioni celerimetriche',self.dlg)        
+		#self.bOssCeler.triggered.connect(self.elencoOssCeler)
+		#mInquiry.addAction(self.bOssCeler)
+		#self.bOssCeler.setDisabled(True)
 
 		#self.bRAP = QAction(QIcon(''),'Rectangular absolute position',self.dlg)        
 		#self.bRAP.triggered.connect(self.rectAbsPosTool)
@@ -2265,7 +2362,7 @@ class topog4qgis:
 						i[0]	indice
 						i[3+i]	attributo i.mo
 		"""
-		self.newLayer("Linestring",title,[["indice",QVariant.Int],['TRATTO',QVariant.String]])
+		self.newLayer("Linestring",title,[["indice",QVariant.String],['TRATTO',QVariant.String]])
 		# Enter editing mode
 		self.cLayer.startEditing()
 		for i,p in enumerate(lines):
@@ -2293,7 +2390,9 @@ class topog4qgis:
 		root = QgsProject.instance().layerTreeRoot()
 		# ---------- carica il libretto delle misure -----------
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
-		extent = fname[0][-3:]		
+		extent = fname[0][-3:]
+		n = 0
+		tmp = []		
 		if fname[0] != "":
 			f = open(fname[0], 'r')
 			try:
@@ -2301,19 +2400,38 @@ class topog4qgis:
 			except:
 				f = codecs.open(fname[0], 'r', 'cp1252')
 			for data in f:
+				n = n+1            
 				data = data.rstrip('\n')
 				data = data.rstrip('\r')
 				data = data.split(';')                
-				print(data)
+				tmp.append(data[0])                
+				tmp.append(float(data[1]))
+				tmp.append(float(data[2]))
+				tmp.append(float(data[3]))
+				tmp.append(data[4])                
+				tmp.append('') 
+				tmp.append(n)                
+				self.misurati.append(tmp)
+				tmp = []                                
 		# ---------parte grafica --------------
 		# crea layer vertici misurati
-		if len(self.misurati):
+		if len(self.misurati):        
 			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 			self.layLibMisur = self.cLayer
-			self.cLayer.setLabelsEnabled(True)
+			self.cLayer.setLabelsEnabled(True)        
 			print("Layer vertici misurati completato")
+			# attiva le voci di menu
+			self.bImpEDM.setEnabled(True)
+			self.bImpLib.setEnabled(True)
+			self.bPfTaf.setEnabled(True)
+			self.bPSR.setEnabled(True)            
+			self.bViewLib.setEnabled(True)
+			self.bPfRil.setEnabled(True)
+			self.bDistPfRil.setEnabled(True)
+			self.bDistPfArch.setDisabled(True)
+			self.bMisurList.setEnabled(True)            
 		else:
-			print("Non ci sono vertici misurati nel libretto")                
+			print("Non ci sono vertici misurati nel libretto")              
 
 	def importaLibretto(self):
 		root = QgsProject.instance().layerTreeRoot()
@@ -2364,19 +2482,22 @@ class topog4qgis:
 			if isGps == True and isCel == False:
 				tipologia = 0 #gps
 			elif isGps == False and isCel == True:
-				tipologia = 1 #tps
+				tipologia = 1 #tps               
 			elif isGps == True and isCel == True:
 				tipologia = 2 #misto
 			for s in RilVrts:
+				#print("nuova stazione",s[0][0])
 				# conversione in coordinate rettangolari
-				tmp = polar2rect(s,self.a_giro)
+				tmp = polar2rect(s,self.a_giro)                                
 				if not isFirst:
-					# collimazione (tranne la prima stazione)
-					tmp = collimazioneStazione(tmp,rilievo,tipologia)
-# occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti
+					if tipologia == 1:                    
+						tmp = calcoloPoligonale(s,rilievo,self.a_giro)
+					else:
+						tmp = collimazioneStazione(tmp,rilievo,tipologia)                        
+				# occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti				
 				isFirst = False
 				if len(tmp):
-#					print("trasferimento in archivio della stazione",tmp[0][0])
+					#print("trasferimento in archivio della stazione",tmp[0][0])
 					for i in tmp:
 						rilievo.append(i)
 				else:
@@ -2525,19 +2646,19 @@ class topog4qgis:
 				self.bRibatList.setDisabled(True)
 				self.bNavPol.setDisabled(True)
 				self.bDistRid.setDisabled(True)
-				self.bOssCeler.setDisabled(True)
+				#self.bOssCeler.setDisabled(True)
 			else:
 				self.bCollimList.setDisabled(True)
 				self.bRibatList.setEnabled(True)				
 				self.bNavPol.setEnabled(True)
 				self.bDistRid.setEnabled(True)
-				self.bOssCeler.setEnabled(True)
+				#self.bOssCeler.setEnabled(True)
 			if isGps == True and isCel == True:
 				self.bCollimList.setDisabled(True)
 				self.bRibatList.setEnabled(True)				
 				self.bNavPol.setEnabled(True)
 				self.bDistRid.setEnabled(True)
-				self.bOssCeler.setEnabled(True)
+				#self.bOssCeler.setEnabled(True)
 				self.bStazList.setEnabled(True)
 				self.bGeorefWGS84.setEnabled(True)                
 			#self.bRAP.setEnabled(True)
@@ -2560,17 +2681,6 @@ class topog4qgis:
 		"""
 		root = QgsProject.instance().layerTreeRoot()
 		#groupEDM = root.addGroup("EdM")
-		if len(self.edmPf):
-			result = QMessageBox.question(
-				self.iface.mainWindow(),
-				"importaEDM",
-				"I punti fiduciali sono gia disponibili, vuoi sovrascriverli?",
-				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-			if result == QMessageBox.No:
-				return
-			else:
-				# cancella il layer dei PF
-				QgsProject.instance().removeMapLayer(self.layEdmPf)
 		# dialogo selezione file
 		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.emp')
 		extent = fname[0][-3:]
@@ -2597,8 +2707,8 @@ class topog4qgis:
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
 				#groupEDM.insertChildNode(0, tmpLayer)
-			else:
-				print('Nessun punto fiduciale nell EdM')
+			#else:
+				#print('Nessun punto fiduciale nell EdM')
 			# --------- scrittura vertici della particella ----------
 			# queste sono superflue, possono servire solo alla numerazione dei vertici
 			if len(self.edmVrts):
@@ -2652,7 +2762,7 @@ class topog4qgis:
 			e EdM, ovviamente si poteva anche pulire in dati del libretto/EdM per
 			estrarre il numero di fiduciale (forse più veloce)
 		"""
-		if len(self.edmPf):
+		if len(self.PfTAF):
 			result = QMessageBox.question(
 				self.iface.mainWindow(),
 				"importa PF da TAF",
@@ -2662,7 +2772,7 @@ class topog4qgis:
 				return
 			else:
 				# cancella il layer dei PF
-				QgsProject.instance().removeMapLayer(self.layEdmPf)
+				QgsProject.instance().removeMapLayer(self.layTAFPf)
 		# cerca i PF
 		pfList = pfLista(self.misurati)
 		if pfList:
@@ -2735,7 +2845,7 @@ class topog4qgis:
 								if txt in pfList:	# matcha anche il pf
 									y,x = data[102:114],data[115:127]
 									print("Trovato",txt,x,y)
-									self.edmPf.append([txt,float(x),float(y),0])
+									self.PfTAF.append([txt,float(x),float(y),0])
 							#lastfgCod = fgCod				
 				else:
 					self.iface.messageBar().pushMessage(
@@ -2745,9 +2855,9 @@ class topog4qgis:
 					duration=4
 				)
 		# crea layer PF
-			if len(self.edmPf):
-				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
-				self.layEdmPf = self.cLayer
+			if len(self.PfTAF):
+				self.creaPointLayer('TAF_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.PfTAF)
+				self.layTAFPf = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print('Layer punti fiduciali completato')
 				# attiva i menu
@@ -2767,7 +2877,7 @@ class topog4qgis:
 			)
             
 	def importaPSR(self):
-		if len(self.edmPf):
+		if len(self.PfTAF):
 			result = QMessageBox.question(
 				self.iface.mainWindow(),
 				"importa PSR da (.csv)",
@@ -2777,7 +2887,7 @@ class topog4qgis:
 				return
 			else:
 				# cancella il layer dei PF
-				QgsProject.instance().removeMapLayer(self.layEdmPf)
+				QgsProject.instance().removeMapLayer(self.layTAFPf)
 		# cerca i PF
 		pfList = pfLista(self.misurati)
 		if pfList:
@@ -2798,7 +2908,7 @@ class topog4qgis:
 						y = data.split(";")[2]                    
 						if pf == nome:                        
 							print("Trovato",nome,x,y)
-							self.edmPf.append([nome,float(x),float(y),0])                            
+							self.PfTAF.append([nome,float(x),float(y),0])                            
 				else:
 					self.iface.messageBar().pushMessage(
 					"importa PSR da (.csv)",
@@ -2824,7 +2934,7 @@ class topog4qgis:
 						y = data.split(";")[2]                    
 						if psr == nome:                        
 							print("Trovato",nome,x,y)
-							self.edmPf.append([nome,float(x),float(y),0])                            
+							self.PfTAF.append([nome,float(x),float(y),0])                            
 				else:
 					self.iface.messageBar().pushMessage(
 					"importa PSR da (.csv)",
@@ -2833,9 +2943,9 @@ class topog4qgis:
 					duration=4
 				)            
 		# crea layer PF
-		if len(self.edmPf):
-			self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
-			self.layEdmPf = self.cLayer
+		if len(self.PfTAF):
+			self.creaPointLayer('TAF_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.PfTAF)
+			self.layTAFPf = self.cLayer
 			self.cLayer.setLabelsEnabled(True)
 			print('Layer punti fiduciali completato')
 			# attiva i menu
@@ -2858,21 +2968,21 @@ class topog4qgis:
 
 	def parametriRTR(self):
 		listaPf = []    
-		for n in range(0,len(self.edmPf)):
-			listaPf.append(self.edmPf[n][0])        
+		for n in range(0,len(self.PfTAF)):
+			listaPf.append(self.PfTAF[n][0])        
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))
 		for i0,j0 in enumerate(listaPf):
 			p,x0,y0,z = pointArchivioCds(self.misurati,j0)            
-			p,e0,n0,z = pointArchivioCds(self.edmPf,j0)            
+			p,e0,n0,z = pointArchivioCds(self.PfTAF,j0)            
 			for i1 in range(i0,1):
 				j1 = listaPf[i1]
 				p,x1,y1,z = pointArchivioCds(self.misurati,j1)
-				p,e1,n1,z = pointArchivioCds(self.edmPf,j1) 
+				p,e1,n1,z = pointArchivioCds(self.PfTAF,j1) 
 			for i2 in range(i0,2):
 				j2 = listaPf[i2]
 				p,x2,y2,z = pointArchivioCds(self.misurati,j2)
-				p,e2,n2,z = pointArchivioCds(self.edmPf,j2)                            
+				p,e2,n2,z = pointArchivioCds(self.PfTAF,j2)                            
 
 		#print("calcolo i prodotti tra i delta dei (TAF) e dei (misurati)")
 		XEspdTAF = ((x0-(x0+x1+x2)/3)*(e0-(e0+e1+e2)/3)) + ((x1-(x0+x1+x2)/3)*(e1-(e0+e1+e2)/3)) + ((x2-(x0+x1+x2)/3)*(e2-(e0+e1+e2)/3))        
@@ -2987,8 +3097,8 @@ class topog4qgis:
 		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo        
 		listaPf = []    
-		for n in range(0,len(self.edmPf)):
-			listaPf.append(self.edmPf[n][0]) 
+		for n in range(0,len(self.PfTAF)):
+			listaPf.append(self.PfTAF[n][0]) 
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))                          
 		print("Nel libretto sono presenti i PF",listaPf)
@@ -3011,7 +3121,7 @@ class topog4qgis:
 			newCds = []
 			newCds.append([dX,dY,0])            
 			for i in listaPf:
-				c,e,n,q = pointArchivioCds(self.edmPf,i)
+				c,e,n,q = pointArchivioCds(self.PfTAF,i)
 				newCds.append([e,n,q])                
 			#print("coordinate destinazione",newCds)
 			# ----------- collimazione a 2 PF (rototraslazione) ------------
@@ -3026,15 +3136,15 @@ class topog4qgis:
                 
 			for i0,j0 in enumerate(listaPf):
 				p,x0,y0,z = pointArchivioCds(self.misurati,j0)
-				p,e0,n0,q = pointArchivioCds(self.edmPf,j0)
+				p,e0,n0,q = pointArchivioCds(self.PfTAF,j0)
 				for i1 in range(i0,1):
 					j1 = listaPf[i1]
 					p,x1,y1,z = pointArchivioCds(self.misurati,j1)
-					p,e1,n1,q = pointArchivioCds(self.edmPf,j1) 
+					p,e1,n1,q = pointArchivioCds(self.PfTAF,j1) 
 				for i2 in range(i0,2):
 					j2 = listaPf[i2]
 					p,x2,y2,z = pointArchivioCds(self.misurati,j2)
-					p,e2,n2,q = pointArchivioCds(self.edmPf,j2)                    
+					p,e2,n2,q = pointArchivioCds(self.PfTAF,j2)                    
     
 			barPFuff = []
 			barPFuff.append((e0+e1+e2)/3)
@@ -3096,7 +3206,7 @@ class topog4qgis:
 		if len(listaPf) > 3:
 			listaPf = list(dict.fromkeys(listaPf))        
 		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
-			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
+			for pf in self.PfTAF:		# calcola le distanze fra tutti i PF dell'EdM
 				listaPf.append(pf[0])
 		#print('Trovati i seguenti PF:',listaPf,'nel libretto')       
 		# --------- misurati --------
@@ -3107,7 +3217,7 @@ class topog4qgis:
 		#print("Coordinate PF misurate",oldCds)
 		newCds = []
 		for i in listaPf:
-			c,x,y,z = pointArchivioCds(self.edmPf,i)
+			c,x,y,z = pointArchivioCds(self.PfTAF,i)
 			newCds.append([x,y,0.0])
 		#print("Coordinate PF ufficiali",newCds)
 		#print('Errore medio dei PF (misurati):')
@@ -3125,16 +3235,16 @@ class topog4qgis:
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.misurati)
 		if len(listaPf) <= 0:				# in assenza di libretto o di PF nel libretto
-			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
+			for pf in self.PfTAF:		# calcola le distanze fra tutti i PF dell'EdM
 				listaPf.append(pf[0])
 		print('Trovati i seguenti PF:',listaPf,'nel libretto')    
 		print('Stampa delle distanze tra PF')
 		for i0,p0 in enumerate(listaPf):
-			j,e0,n0,z = pointArchivioCds(self.edmPf,p0)
+			j,e0,n0,z = pointArchivioCds(self.PfTAF,p0)
 			j,x0,y0,z = pointArchivioCds(self.collimati,p0)            
 			for i1 in range(i0+1,len(listaPf)):
 				p1 = listaPf[i1]
-				j,e1,n1,z = pointArchivioCds(self.edmPf,p1)
+				j,e1,n1,z = pointArchivioCds(self.PfTAF,p1)
 				j,x1,y1,z = pointArchivioCds(self.collimati,p1)                
 				# stampa
 				dTAF = math.sqrt((e1-e0)**2+(n1-n0)**2)   
@@ -3171,7 +3281,7 @@ class topog4qgis:
 
 	def elencoPfUfficiali(self):
 		print('Elenco dei punti fiduciali prelevati da TAF/EdM')
-		printList(self.edmPf)
+		printList(self.PfTAF)
 
 	def distPfUfficiali(self):
 		"""
@@ -3179,15 +3289,15 @@ class topog4qgis:
 		"""
 		pfList = pfLista(self.misurati)
 		if len(pfList) <= 0:				# in assenza di libretto o di PF nel libretto
-			for pf in self.edmPf:		# calcola le distanze fra tutti i PF dell'EdM
+			for pf in self.PfTAF:		# calcola le distanze fra tutti i PF dell'EdM
 				pfList.append(pf[0])
 		print('trovati i seguenti PF:',pfList,'nel libretto')
 		print('Stampa delle distanze ufficiali fra PF')
 		for i0,n0 in enumerate(pfList):
-			j,x0,y0,z = pointArchivioCds(self.edmPf,n0)
+			j,x0,y0,z = pointArchivioCds(self.PfTAF,n0)
 			for i1 in range(i0+1,len(pfList)):
 				n1 = pfList[i1]
-				j,x1,y1,z = pointArchivioCds(self.edmPf,n1)
+				j,x1,y1,z = pointArchivioCds(self.PfTAF,n1)
 				# stampa
 				d = math.sqrt((x1-x0)**2+(y1-y0)**2)
 				print('%s %12.3f %12.3f' % (n0,x0,y0))
@@ -3479,7 +3589,7 @@ class topog4qgis:
 		dlg.exec_()
 
 	def elencoDistRidotte(self):
- 		print('--------- Elenco distanze ridotte ---------')
+ 		print('--------- Elenco distanze ridotte e azimut ---------')
  		printList(distanzeRidotte(self.libretto,self.a_giro))
 
 	def rectAbsPosTool(self):
