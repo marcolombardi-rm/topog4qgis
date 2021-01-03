@@ -10,7 +10,11 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
         
+<<<<<<< HEAD
         updated on           : 2021-01-03
+=======
+        updated on           : 2020-11-25
+>>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1850,8 +1854,13 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
+<<<<<<< HEAD
 	vers = '0.3.3'
 	build_date = '2020-12-27'
+=======
+	vers = '0.3.2'
+	build_date = '2020-11-25'
+>>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'

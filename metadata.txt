@@ -1,11 +1,16 @@
 [general]
 name=topog4qgis
 qgisMinimumVersion=3.0
+<<<<<<< HEAD
 description= topog4qgis e' un plugin utile all'elaborazione di libretti PreGeo (.dat e .pdf) e alla trattazione di liste di punti (.csv) su QGIS mediante opportuna rototraslazione ai minimi quadrati | Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo)
 version=version 0.3.3
+=======
+description=topog4qgis e' un plugin utile all'elaborazione di libretti PreGeo (.dat e .pdf) e alla trattazione di liste di punti (.csv) su QGIS mediante opportuna rototraslazione ai minimi quadrati | Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo)
+version=version 0.3.2
+>>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
 author=Marco Lombardi (contributor and actual maintainer)
 email=marco.lombardi.rm@gmail.com
-about= Thanks to Giuliano Curti (original author) and Giuseppe Patti (contributor)
+about=L'elaborazione di libretti PreGeo (.dat e .pdf) e' strettamente legata al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia. Il plugin puo' elaborare rilievi celerimetrici, GNSS, misti TPS-GNSS; verificando i punti ribattuti e collegando, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente. Vengono elaborati dal plugin punti definiti con allineamenti e squadri (riga 4 e 5). Se presenti, sono estratti ed elaborati, anche contorni di unita' catastali (particelle, fabbricati, linee dividenti, ecc.) definite con riga 7. La trattazione di liste di punti (.csv), dalla versione 0.3.2, e' invece slegata dai formati PreGeo consentendo quindi all'utente di lavorare su un rilievo gia' elaborato da altri software. La lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilita' di un estratto di mappa digitale (.edm) o della tabella dei punti fiduciali (.taf o .csv) consente di georeferire mediante rototraslazione ai minimi quadrati il rilievo nello spazio assoluto ufficiale. Dalla versione 0.3.1 e' anche possibile l'esportazione in formato .csv del rilievo elaborato e del rilievo rototraslato ai minimi quadrati. Siamo disponibili, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo del plugin. Per il corretto funzionamento e' necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA. Giuliano Curti (original author) e Giuseppe Patti (contributor) Marco Lombardi (contributor and actual maintainer)
 category=Vector
 ;
 
