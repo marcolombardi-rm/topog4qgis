@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 topog4qgis v0.3.3
-=======
-topog4qgis v0.3.2
->>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
 ==========
 VERSIONE ITALIANA
 =================
