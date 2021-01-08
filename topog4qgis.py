@@ -1854,13 +1854,8 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-<<<<<<< HEAD
 	vers = '0.3.3'
 	build_date = '2020-12-27'
-=======
-	vers = '0.3.2'
-	build_date = '2020-11-25'
->>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
