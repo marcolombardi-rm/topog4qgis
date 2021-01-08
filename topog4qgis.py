@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 /***************************************************************************
 topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
@@ -9,12 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        
-<<<<<<< HEAD
         updated on           : 2021-01-03
-=======
-        updated on           : 2020-11-25
->>>>>>> d91e0aca74e38ff3ae7efbeae38f66c781522380
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1965,7 +1959,7 @@ class topog4qgis:
 		self.dlg.setWindowTitle("topog4qgis v0.3.3")
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
-		mb.setGeometry(0,0,270,120)
+		mb.setGeometry(0,0,300,120)
 
 		# ---------- file menu -----------------
 		mFile = mb.addMenu('File')
