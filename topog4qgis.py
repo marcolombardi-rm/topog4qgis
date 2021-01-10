@@ -1957,9 +1957,10 @@ class topog4qgis:
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
 		self.dlg.setWindowTitle("topog4qgis v0.3.3")
+		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
-		mb.setGeometry(0,0,300,120)
+		mb.setGeometry(0,0,320,120)
 
 		# ---------- file menu -----------------
 		mFile = mb.addMenu('File')
