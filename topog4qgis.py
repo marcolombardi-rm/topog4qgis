@@ -1115,7 +1115,7 @@ def elaborazioneGps(myGps):
 		rimane il problema dell'altitudine da controllare bene;
 	"""
 	tmp = []
-	note = ''
+	note = 'gps'
 	for g in myGps:
 		# preleva la baseline (cds geocentriche)
 		reg = g[0]
@@ -1377,7 +1377,8 @@ def collimazioneStazione(rilievo,archivio,tipologia):
     
 def calcoloPoligonale(rilievo,archivio,a_giro):
 	ang = 0
-	#print("collimazione: ricevo archivio",archivio,"rilievo",rilievo)
+	#print("ricevo archivio",archivio)
+	#print("ricevo rilievo",rilievo)
 	collimati = []
 	# controlla se la stazione è già stata osservata
 	newStaz = rilievo[0][0]
@@ -1430,6 +1431,7 @@ def calcoloPoligonale(rilievo,archivio,a_giro):
 				mat = matRotoTraslaTS(s1,s2,d1,d2,ang)
 				#print("matrice di trasformazione",mat)
 				collimati = trasformaPunti3D(rilievo,mat)
+				#print(collimati)                
 			else:
 				print('la stazione mirante non è in archivio (questo errore non si dovrebbe MAI verificare)')
 	else:
@@ -1848,12 +1850,12 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.3'
-	build_date = '2020-12-27'
+	vers = '0.3.4'
+	build_date = '2021-01-03'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
-	copyright = '2013-2014 giuliano curti'
+	copyright = '2013-2021 giuliano curti e marco lombardi'
 	license = 'GPL  (http://www.gnu.org/licenses/gpl-2.0.html)'
 	anTxtList = []		# lista delle annotazioni
 	cLayer = ''
@@ -1956,7 +1958,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.3")
+		self.dlg.setWindowTitle("topog4qgis v0.3.4")
 		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
@@ -2446,6 +2448,7 @@ class topog4qgis:
 		if fname[0] != "":        
 			isCel = False
 			isGps = False
+			counter = 1            
 			self.libretto = loadFile(fname[0],extent)
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
@@ -2465,13 +2468,16 @@ class topog4qgis:
 			# se ci sono divengono lo spazio iniziale; in caso negativo allo scopo
 			# viene destinata la prima stazione celerimetrica;
 			rilievo = []	# inizializza l'archivio
+			listPtGps = []	# inizializza la lista dei punti gps 
+			poligonale = []            
 			# ----- elaborazione dei gps ---------
 			if myGps:
 				tmp = elaborazioneGps(myGps)
 				for g in tmp:
 					rilievo.append(g)
+					listPtGps.append(g[0])                                         
 				isFirst = False	# azzera il flag
-				isGps = True
+				isGps = True                
 			else:
 				isFirst = True
 				isGps = False
@@ -2485,14 +2491,38 @@ class topog4qgis:
 			elif isGps == True and isCel == True:
 				tipologia = 2 #misto
 			for s in RilVrts:
-				#print("nuova stazione",s[0][0])
+				#print("nuova stazione",s[0][0])                
 				# conversione in coordinate rettangolari
-				tmp = polar2rect(s,self.a_giro)                                
-				if not isFirst:
-					if tipologia == 1:                    
+				tmp = polar2rect(s,self.a_giro)
+				#print("prima elaborazione",tmp)                
+				if not isFirst:                
+					if tipologia == 1: 
+						#print("trovata una poligonale libera")                    
 						tmp = calcoloPoligonale(s,rilievo,self.a_giro)
-					else:
-						tmp = collimazioneStazione(tmp,rilievo,tipologia)                        
+					else:                    
+						stazList = stazioniLista(self.libretto)
+						#print("stazioni celerimetriche nel libretto:",stazList[1:])                        
+						#print("punti gps nel libretto:",listPtGps)                        
+						#print("stazioni celerimetriche orientate su punti gps:",list(set(stazList[1:]).intersection(set(listPtGps))))
+						list_difference = []                        
+						for item in stazList[1:]:
+							if item not in listPtGps:
+								list_difference.append(item)                        
+						#print("stazioni senza corrispondenza gps:",list_difference)
+						if len(list_difference) > 0: 
+							isFirst = False                        
+							#print("trovata una poligonale orientata su punti gps")
+							if counter == 1:                            
+								tmp = collimazioneStazione(tmp,rilievo,tipologia)
+								counter = 2                                                                                               
+							else: 
+								for i in rilievo:                            
+									if 'gps' not in i:
+										poligonale.append(i)                                    
+								tmp = calcoloPoligonale(s,poligonale,self.a_giro)
+								counter = 2                                
+						else:                        
+							tmp = collimazioneStazione(tmp,rilievo,tipologia)                        
 				# occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti				
 				isFirst = False
 				if len(tmp):
@@ -2537,8 +2567,8 @@ class topog4qgis:
 			pd = list(set(pdtmp))            
 			#print('tolti i ribattuti doppi',pd) 
 			#print('lista stazioni senza doppioni',list(set(stazioniLista(self.libretto))))            
-			for st in range(1,len(list(set(stazioniLista(self.libretto))))):            
-				pd.remove(list(set(stazioniLista(self.libretto)))[st])                 
+#			for st in range(1,len(list(set(stazioniLista(self.libretto))))):            
+#				pd.remove(list(set(stazioniLista(self.libretto)))[st])                 
 			#print('tolte le stazioni',pd)     
 			stazList = stazioniLista(self.libretto)           
 			lst = [] #lista osservazioni per ogni stazione
@@ -2560,7 +2590,7 @@ class topog4qgis:
 							pass #salto la stazione e vado avanti con la prossima                           
 						elif len(list(set(lst) & set(pd))) >= 2: #se non e' una poligonale cerco i punti da trattare
 							self.bNavPol.setDisabled(True) 							
-							print('Nella stazione',s0,'ci punti ribattuti da trattare')
+							#print('Nella stazione',s0,'ci punti ribattuti da trattare')
 							#print(list(set(lst) - set(pd)))
 							#vanno ripescati i punti in self.misurati, ricalcolati e sostituiti                            
 							#print('elenco ribattuti da',s0)                            
@@ -2583,7 +2613,7 @@ class topog4qgis:
 							    	#self.misurati.pop(i)	# toglie da misurati                                    
 							lst.clear()      
 						else:
-							print('Non ci punti ribattuti da trattare')
+							#print('Non ci punti ribattuti da trattare')
 							self.bNavPol.setDisabled(True)                            
 			# ---------parte grafica --------------
 			# crea layer vertici misurati
