@@ -1088,7 +1088,7 @@ def distanzeRidotte(archivio,a_giro):
 						# calcolo la distanza ridotta
 						d = float(tmp[3])
 						dr = d*abs(math.cos(av))
-						print("distanza %s - %s: %12.3f, azimut %12.4f" % (staz,pnt,dr,float(tmp[1])))
+						print("distanza %s - %s: %12.3f, azimut: %12.4f" % (staz,pnt,dr,float(tmp[1])))
 	return list
 
 def pfLista(libretto):
@@ -2507,21 +2507,26 @@ class topog4qgis:
 						list_difference = []                        
 						for item in stazList[1:]:
 							if item not in listPtGps:
-								list_difference.append(item)                        
-						#print("stazioni senza corrispondenza gps:",list_difference)
-						if len(list_difference) > 0: 
+								list_difference.append(item)                                                
+						if len(list_difference) > 0:
+							#print("list_difference",len(list_difference),"stazList",len(stazList[1:]),"counter",counter)                        
 							isFirst = False                        
 							#print("trovata una poligonale orientata su punti gps")
-							if counter == 1:                            
+							if counter <= len(stazList[1:]):
+								#print("trovata stazione orientata su punti gps")
 								tmp = collimazioneStazione(tmp,rilievo,tipologia)
-								counter = 2                                                                                               
-							else: 
+								counter = counter+1                                
+							elif counter == 1:                            
+								tmp = collimazioneStazione(tmp,rilievo,tipologia)
+								counter = 2                           
+							else:                            
 								for i in rilievo:                            
 									if 'gps' not in i:
-										poligonale.append(i)                                    
+										poligonale.append(i)                                        
 								tmp = calcoloPoligonale(s,poligonale,self.a_giro)
-								counter = 2                                
-						else:                        
+								counter = counter+1                                
+						else: 
+							#print("trovata stazione orientata su punti gps")                        
 							tmp = collimazioneStazione(tmp,rilievo,tipologia)                        
 				# occorre controllare i valori di ritorno, ci potrebbero essere stazioni senza punti ribattuti				
 				isFirst = False
