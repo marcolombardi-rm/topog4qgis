@@ -1,5 +1,5 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
-2021-01-14 v0.3.4
+2021-01-24 v0.3.4
 	implementata trattazione di libretti contenenti poligonali orientate su punti gps
 2021-01-03 v0.3.3
 	corretto un conflitto che si veniva a creare tra i PF desunti da TAF e quelli desunti da EdM

@@ -8,7 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        updated on           : 2021-01-03
+        updated on           : 2021-01-24
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -43,7 +43,14 @@ def printMsg(message):
 	msg.setIcon(QMessageBox.Information)
 	msg.setText(message)
 	#msg.setDetailedText("The details are as follows:")
-	msg.exec_()    
+	msg.exec_() 
+
+def printMsgExt(message,ext_message):
+	msg = QMessageBox()
+	msg.setIcon(QMessageBox.Information)
+	msg.setText(message)
+	msg.setDetailedText(ext_message)
+	msg.exec_()       
 
 def about(mw,parent):
 	"""
@@ -78,39 +85,16 @@ def info(mw,vers,mail):
 		"TOPOGRAPHIC tools for QGIS ("
 + vers
 + ")"
-+ "\n-----------------------------------------------"
-+ "\nThe procedure allows the survey management;"
-+ "\nnow this is limited to reading of the site"
-+ "\nrecords (Libretto di campagna), in the forms."
-+ "\nof optical, gps and alignment records."
-+ "\n"
-+ "\nReadings of EdM, TAF and DIS files of the"
-+ "\nItalian Cadastral Service are allowed also."
-+ "\n"
-+ "\nThe user provided data are matched to compose"
-+ "\nthe topographical shape of the area of interest"
-+ "\nand displayed as a series of vector layers."
-+ "\n"
-+ "\nThe availability of the terrain control points"
-+ "\n(in italian: PF punti fiduciali) allows the"
-+ "\ntrasformation of the land survey to correct"
-+ "\nCRS."
-+ "\n"
-+ "\nThe user can investigate their survey by"
-+ "\ninquiring all information on stations, vertices,"
-+ "\nPF, etc. by plugin functions in addition to"
-+ "\nthe QGIS native tools, as in example to"
-+ "\nsave them in different formats too."
-+ "\n"
-+ "\nOpening the python console you can enjoy some"
-+ "\nuseful info from the system."
-+ "\n" 
-+ "\nThis procedure is EXPERIMENTAL; it might"
-+ "\ncontains many bugs, few duplications and some"
-+ "\nmistakes, only in part known to the author;"
-+ "\n"
-+ "\nplease let us know about any encountered"
-+ "\nproblems"
++ "\nL'elaborazione di libretti PreGeo (.dat e .pdf) e' strettamente legata al formato dei dati forniti dall'Agenzia del Territorio, ora Agenzia delle Entrate, dello stato italiano, pertanto trova completa applicazione in Italia."
++ "\nIl plugin puo' elaborare rilievi celerimetrici, GNSS, misti TPS-GNSS; verificando i punti ribattuti e collegando, mediante opportune trasformazioni affini, le varie stazioni riducendo il rilievo ad un unico spazio vettoriale coerente. Vengono elaborati anche punti definiti con allineamenti e squadri (riga 4 e 5)."
++ "\nSe presenti, sono estratti ed elaborati, anche contorni di unita' catastali (particelle, fabbricati, linee dividenti, ecc.) definite con riga 7."
++ "\nLa trattazione di liste di punti (.csv), dalla versione 0.3.2, e' invece slegata dai formati PreGeo consentendo quindi all'utente di lavorare su un rilievo gia' elaborato da altri software."
++ "\nLa lettura, nel corso del rilievo, di capisaldi noti (punti fiduciali) e la disponibilita' di un estratto di mappa digitale (.edm) o della tabella dei punti fiduciali (.taf o .csv) consente di georeferire mediante rototraslazione ai minimi quadrati il rilievo nello spazio assoluto ufficiale."
++ "\nDalla versione 0.3.1 e' anche possibile l'esportazione in formato .csv del rilievo elaborato e del rilievo rototraslato ai minimi quadrati."
++ "\nSiamo disponibili, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin."
++ "\nAll'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo del plugin."
++ "\nPer il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA."
++ "\nNOTA: lo schema CSV accettato dal plugin e' il seguente nome;x;y;z;note"
 	)
 
 # ----- graphic functions -----------
@@ -1131,7 +1115,7 @@ def elaborazioneGps(myGps):
 		nRiga = reg[-1]
 		# trasforma in cds topocentriche
 		u,v,w,quota = geocentriche2topocentriche(x0,y0,z0,x0,y0,z0)        
-		print("quota ellisoidica baseline:",quota)        
+		print("quota ellisoidica baseline:","%.3f"%(quota))        
 		tmp.append([basLn,u,v,w,note,basLn,nRiga])
 		# calcola tutti i vertici
 		for i in range(1,len(g)):
@@ -1858,7 +1842,7 @@ class navigatorDlg(QDialog):
 
 class topog4qgis:
 	vers = '0.3.4'
-	build_date = '2021-01-03'
+	build_date = '2021-01-24'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -2028,7 +2012,7 @@ class topog4qgis:
 		mValid = mb.addMenu('Calcoli')
 
 		self.bErrPf = QAction(QIcon(''),'Errore medio PF',self.dlg)        
-		self.bErrPf.triggered.connect(self.errorePF)
+		self.bErrPf.triggered.connect(self.errorePFprint)
 		mValid.addAction(self.bErrPf)
 		self.bErrPf.setDisabled(True)
         
@@ -3112,7 +3096,8 @@ class topog4qgis:
 		self.creaPointLayer('Rilievo_vertici_collimati_WGS84',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],archivio)
 		self.cLayer.setLabelsEnabled(True)
 		self.layLibCollimWGS84 = self.cLayer
-		print('Layer vertici collimati su WGS84 (EPSG:4326) completato')
+		print('Layer vertici collimati su WGS84(EPSG:4326) completato')
+		printMsg("Georeferenziazione su WGS84(EPSG:4326) eseguita. Layers aggiunti.")        
 		# crea layer contorni
 		if len(self.RilCtrn):
 			QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)         
@@ -3140,8 +3125,9 @@ class topog4qgis:
 		"""
 			esegue la rototraslazione con >=2 PF
 			e la collimazione con >=3
-		"""
+		"""        
 		dX, dY, ang = self.parametriRTR()
+		msg = "Componenti per la traslazione rigida:" + "\n" + "dX" + "%12.3f"%(dX) + "\n" + "dY" + "%12.3f"%(dY) + "\n" + "angolo di rotazione (grad)" + "%12.4f"%(fromRad(ang,400)-400)       
 		backupmisurati = copy.deepcopy(self.misurati)        
 		# controlla i PF misurati nel rilievo        
 		listaPf = []    
@@ -3195,27 +3181,25 @@ class topog4qgis:
 					p,e2,n2,q = pointArchivioCds(self.PfTAF,j2)                    
     
 			barPFuff = []
-			barPFuff.append((e0+e1+e2)/3)
-			barPFuff.append((n0+n1+n2)/3)
-			barPFuff.append(0)
-			print("baricentro PF (TAF)",barPFuff)
+			barPFuff.append("%.3f"%((e0+e1+e2)/3))
+			barPFuff.append("%.3f"%((n0+n1+n2)/3))
+			msg = msg + "\n" + "baricentro PF (TAF)" + str(barPFuff)
 
 			barPFcol = []
-			barPFcol.append((x0+x1+x2)/3)
-			barPFcol.append((y0+y1+y2)/3)
-			barPFcol.append(0)
-			print("baricentro PF (collimati)",barPFcol)        
+			barPFcol.append("%.3f"%((x0+x1+x2)/3))
+			barPFcol.append("%.3f"%((y0+y1+y2)/3))
+			msg = msg + "\n" + "baricentro PF (collimati)" + str(barPFcol)        
 
-			scartoX = ((e0+e1+e2)/3)-((x0+x1+x2)/3)
-			scartoY = ((n0+n1+n2)/3)-((y0+y1+y2)/3)
-			print("scartoX",scartoX,"scartoY",scartoY)
+			scartoX = "%12.3f"%(((e0+e1+e2)/3)-((x0+x1+x2)/3))
+			scartoY = "%12.3f"%(((n0+n1+n2)/3)-((y0+y1+y2)/3))
+			msg = msg + "\n" + "scartoX" + scartoX + "\n" + "scartoY" + scartoY
 
 			# crea layer vertici collimati
 			self.creaPointLayer('Rilievo_vertici_collimati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.collimati)
 			self.cLayer.setLabelsEnabled(True)
 			self.layLibCollim = self.cLayer
 			print('Layer vertici collimati su PF completato')
-                
+            
 			if layLibCtrn == True:   
 				QgsProject.instance().layerTreeRoot().findLayer(self.layLibCtrn.id()).setItemVisibilityChecked(False)                
 				self.creaLineLayer('Rilievo_contorni_collimati',self.RilCtrn,self.RilSty,self.collimati)
@@ -3238,17 +3222,20 @@ class topog4qgis:
 			self.bErrPf.setEnabled(True)
 			self.bDistPf.setEnabled(True)
 			self.bBaric.setEnabled(True) 
-			self.misurati = backupmisurati
-			self.errorePF()                
-                
+			self.misurati = backupmisurati      
+			printMsgExt("Rototraslazione eseguita. Layers aggiunti.",self.errorePF())                
 		self.expActCol.setEnabled(True)                 
 #	---------- validation functions --------------------
+
+	def errorePFprint(self):
+		printMsg(self.errorePF())    
 
 	def errorePF(self):
 		"""
 			calcola l'errore medio sia per i misurati che per i collimati
 			quì è calcolato solo l'errore nel piano XY
 		"""
+		msg = ""       
 		# controlla i PF misurati nel rilievo
 		listaPf = pfLista(self.misurati)
 		if len(listaPf) > 3:
@@ -3276,8 +3263,9 @@ class topog4qgis:
 			c,x,y,z = pointArchivioCds(self.collimati,i)
 			oldCds.append([x,y,0.0])
 		#print("Coordinate PF collimate",oldCds)
-		print('Errore medio dei PF (collimati):')
-		print('ErrMin %10.5f ErrMax %10.5f ErrMed %10.5f' % (erroreLsm(oldCds,newCds)))
+		msg = "Errore medio dei PF (collimati):"
+		msg = msg + "\n" + "ErrMin %.3f ErrMax %.3f ErrMed %.3f" % (erroreLsm(oldCds,newCds))
+		return msg        
         
 	def distanzePF(self): 
 		# controlla i PF misurati nel rilievo
@@ -3286,7 +3274,7 @@ class topog4qgis:
 			for pf in self.PfTAF:		# calcola le distanze fra tutti i PF dell'EdM
 				listaPf.append(pf[0])
 		print('Trovati i seguenti PF:',listaPf,'nel libretto')    
-		print('Stampa delle distanze tra PF')
+		msg = 'Stampa delle distanze tra PF'
 		for i0,p0 in enumerate(listaPf):
 			j,e0,n0,z = pointArchivioCds(self.PfTAF,p0)
 			j,x0,y0,z = pointArchivioCds(self.collimati,p0)            
@@ -3298,10 +3286,11 @@ class topog4qgis:
 				dTAF = math.sqrt((e1-e0)**2+(n1-n0)**2)   
 				d = math.sqrt((x1-x0)**2+(y1-y0)**2)  
 				# stampa				
-				print('distanza tra %s e %s = %12.3f (TAF)' % (p0,p1,dTAF))
-				print('distanza tra %s e %s = %12.3f (collimati)' % (p0,p1,d))
-				print('---------------------------------')                        
-
+				msg = msg + '\n' + 'tra %s e %s' % (p0,p1)
+				msg = msg + '\n' + '%12.3f (TAF)' % (dTAF)
+				msg = msg + '\n' + '%12.3f (collimati)' % (d)
+				msg = msg + '\n' + '---------------------------------'                        
+		printMsg(msg)
 # --------- inquiry functions --------------------
 
 	def librViewTool(self):
