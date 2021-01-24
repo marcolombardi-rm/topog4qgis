@@ -38,10 +38,10 @@ from qgis.gui import *
 
 # ----- help functions -----------
 
-def printMsg():
+def printMsg(message):
 	msg = QMessageBox()
 	msg.setIcon(QMessageBox.Information)
-	msg.setText("This is a message box")
+	msg.setText(message)
 	#msg.setDetailedText("The details are as follows:")
 	msg.exec_()    
 
@@ -2407,27 +2407,31 @@ class topog4qgis:
 				f.readline()
 			except:
 				f = codecs.open(fname[0], 'r', 'cp1252')
-			for data in f:
-				n = n+1            
-				data = data.rstrip('\n')
-				data = data.rstrip('\r')
-				data = data.split(';')                
-				tmp.append(data[0])                
-				tmp.append(float(data[1]))
-				tmp.append(float(data[2]))
-				tmp.append(float(data[3]))
-				tmp.append(data[4])                
-				tmp.append('') 
-				tmp.append(n)                
-				self.misurati.append(tmp)
-				tmp = []                                
+			try:
+				for data in f:
+					n = n+1            
+					data = data.rstrip('\n')
+					data = data.rstrip('\r')
+					data = data.split(';')                
+					tmp.append(data[0])                
+					tmp.append(float(data[1]))
+					tmp.append(float(data[2]))
+					tmp.append(float(data[3]))
+					tmp.append(data[4])                
+					tmp.append('') 
+					tmp.append(n)                
+					self.misurati.append(tmp)
+					tmp = []
+			except IndexError as error: 
+				printMsg("Attenzione! Verifica il formato del file (.csv)")         
 		# ---------parte grafica --------------
 		# crea layer vertici misurati
 		if len(self.misurati):        
 			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 			self.layLibMisur = self.cLayer
 			self.cLayer.setLabelsEnabled(True)        
-			print("Layer vertici misurati completato")            
+			print("Layer vertici misurati completato")
+			printMsg("Rilievo (.csv) trattato. Layers aggiunti.")            
 			# attiva le voci di menu
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
@@ -2634,7 +2638,7 @@ class topog4qgis:
 				self.layLibMisur = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print("Layer vertici misurati completato")
-				printMsg()                
+				printMsg("Libretto (.dat .pdf) trattato. Layers aggiunti.")                
 			else:
 				print("Non ci sono vertici misurati nel libretto")
 			# crea layer dei ribattuti
@@ -2902,6 +2906,7 @@ class topog4qgis:
 				self.layTAFPf = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print('Layer punti fiduciali completato')
+				printMsg("PF importati da TAF. Layers aggiunti")                	
 				# attiva i menu
 				self.bGeoref.setEnabled(True)
 				self.bPfUff.setEnabled(True)
@@ -2922,7 +2927,7 @@ class topog4qgis:
 		if len(self.PfTAF):
 			result = QMessageBox.question(
 				self.iface.mainWindow(),
-				"importa PSR da (.csv)",
+				"importa PF/PSR da (.csv)",
 				"I punti fiduciali sono già disponibili, vuoi sovrascriverli?",
 				QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 			if result == QMessageBox.No:
@@ -2953,7 +2958,7 @@ class topog4qgis:
 							self.PfTAF.append([nome,float(x),float(y),0])                            
 				else:
 					self.iface.messageBar().pushMessage(
-					"importa PSR da (.csv)",
+					"importa PF/PSR da (.csv)",
 					"Devi darmi un nome di file valido",
 					level=Qgis.Warning,
 					duration=4
@@ -2979,7 +2984,7 @@ class topog4qgis:
 							self.PfTAF.append([nome,float(x),float(y),0])                            
 				else:
 					self.iface.messageBar().pushMessage(
-					"importa PSR da (.csv)",
+					"importa PF/PSR da (.csv)",
 					"Devi darmi un nome di file valido",
 					level=Qgis.Warning,
 					duration=4
@@ -2990,6 +2995,7 @@ class topog4qgis:
 			self.layTAFPf = self.cLayer
 			self.cLayer.setLabelsEnabled(True)
 			print('Layer punti fiduciali completato')
+			printMsg("PF/PSR importati da (.csv). Layers aggiunti")            
 			# attiva i menu
 			self.bGeoref.setEnabled(True)
 			self.bPfUff.setEnabled(True)
@@ -3000,7 +3006,7 @@ class topog4qgis:
 			#self.bPRP.setEnabled(True)
 		else:
 			self.iface.messageBar().pushMessage(
-				"importa PSR da (.csv)",
+				"importa PF/PSR da (.csv)",
 				"Attenzione: il rilievo non sembra contenere punti fiduciali",
 				level=Qgis.Warning,
 				duration=4
@@ -3597,7 +3603,8 @@ class topog4qgis:
 			line = str(self.misurati[n][0]) + ";" + str(round(self.misurati[n][1],3)) + ";" + str(round(self.misurati[n][2],3)) + ";" + str(round(self.misurati[n][3],3)) + ";" + note + "\r\n"        
 			file.write(line)
 		file.close()
-		print("Rilievo elaborato esportato")        
+		print("Rilievo elaborato esportato")
+		printMsg("Rilievo elaborato esportato")        
         
 	def esportaRilCol(self):
 		nameToExp = QFileDialog.getSaveFileName(self.iface.mainWindow(),'Save File','rototraslato','*.csv')
@@ -3609,7 +3616,8 @@ class topog4qgis:
 			line = str(self.collimati[n][0]) + ";" + str(round(self.collimati[n][1],3)) + ";" + str(round(self.collimati[n][2],3)) + ";" + str(round(self.collimati[n][3],3)) + ";" + note + "\r\n"        
 			file.write(line)
 		file.close()
-		print("Rilievo rototraslato esportato")            
+		print("Rilievo rototraslato esportato")
+		printMsg("Rilievo rototraslato esportato")        
 
 	def elencoMisurati(self):
 		print('Elenco delle coordinate misurate dei vertici del rilievo')
