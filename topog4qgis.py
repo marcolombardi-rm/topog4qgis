@@ -38,6 +38,13 @@ from qgis.gui import *
 
 # ----- help functions -----------
 
+def printMsg():
+	msg = QMessageBox()
+	msg.setIcon(QMessageBox.Information)
+	msg.setText("This is a message box")
+	#msg.setDetailedText("The details are as follows:")
+	msg.exec_()    
+
 def about(mw,parent):
 	"""
 		Visualizza info sulla procedura
@@ -2420,7 +2427,7 @@ class topog4qgis:
 			self.creaPointLayer('Rilievo_vertici_misurati',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double],["NOTE",QVariant.String],["STAZIONE",QVariant.String],["LIBRETTO",QVariant.Int]],self.misurati)
 			self.layLibMisur = self.cLayer
 			self.cLayer.setLabelsEnabled(True)        
-			print("Layer vertici misurati completato")
+			print("Layer vertici misurati completato")            
 			# attiva le voci di menu
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
@@ -2627,6 +2634,7 @@ class topog4qgis:
 				self.layLibMisur = self.cLayer
 				self.cLayer.setLabelsEnabled(True)
 				print("Layer vertici misurati completato")
+				printMsg()                
 			else:
 				print("Non ci sono vertici misurati nel libretto")
 			# crea layer dei ribattuti
