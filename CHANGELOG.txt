@@ -1,4 +1,6 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2021-04-24 v0.3.5
+	piccole variazioni grafiche (simboli pf/psr)
 2021-01-24 v0.3.4
 	implementata trattazione di libretti contenenti poligonali orientate su punti gps
 2021-01-03 v0.3.3

@@ -8,7 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        updated on           : 2021-01-24
+        updated on           : 2021-04-24
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1841,8 +1841,8 @@ class navigatorDlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.4'
-	build_date = '2021-01-24'
+	vers = '0.3.5'
+	build_date = '2021-04-24'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -1949,7 +1949,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.4")
+		self.dlg.setWindowTitle("topog4qgis v0.3.5")
 		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
@@ -2017,7 +2017,7 @@ class topog4qgis:
 		self.bErrPf.setDisabled(True)
         
 		self.bDistPf = QAction(QIcon(''),'Distanze PF',self.dlg)        
-		self.bDistPf.triggered.connect(self.distanzePF)
+		self.bDistPf.triggered.connect(self.distPfUfficiali)
 		mValid.addAction(self.bDistPf)
 		self.bDistPf.setDisabled(True)        
         
@@ -2731,8 +2731,10 @@ class topog4qgis:
 			if len(self.edmPf):
 				self.creaPointLayer('EdM_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPf)
 				self.layEdmPf = self.cLayer
+				symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'blue'})
+				self.cLayer.renderer().setSymbol(symbol)
+				self.cLayer.setLabelsEnabled(True)                
 				print('Layer punti fiduciali completato')
-				self.cLayer.setLabelsEnabled(True)
 				#child0 = root.children()[0]
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
@@ -2748,7 +2750,7 @@ class topog4qgis:
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
 				#groupEDM.insertChildNode(0, tmpLayer)
-				self.layEdmVrts = self.cLayer
+				self.layEdmVrts = self.cLayer	                
 			else:
 				print('Nessun vertice nell EdM')
 			# --------- scrittura contorni della particella ----------
@@ -2888,6 +2890,8 @@ class topog4qgis:
 			if len(self.PfTAF):
 				self.creaPointLayer('TAF_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.PfTAF)
 				self.layTAFPf = self.cLayer
+				symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
+				self.cLayer.renderer().setSymbol(symbol)                 
 				self.cLayer.setLabelsEnabled(True)
 				print('Layer punti fiduciali completato')
 				printMsg("PF importati da TAF. Layers aggiunti")                	
@@ -2899,6 +2903,7 @@ class topog4qgis:
 				#self.bPAP.setEnabled(True)
 				#self.bRRP.setEnabled(True)
 				#self.bPRP.setEnabled(True)
+               
 		else:
 			self.iface.messageBar().pushMessage(
 				"importa PF da Taf",
@@ -2977,6 +2982,8 @@ class topog4qgis:
 		if len(self.PfTAF):
 			self.creaPointLayer('TAF_pf',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.PfTAF)
 			self.layTAFPf = self.cLayer
+			symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
+			self.cLayer.renderer().setSymbol(symbol)             
 			self.cLayer.setLabelsEnabled(True)
 			print('Layer punti fiduciali completato')
 			printMsg("PF/PSR importati da (.csv). Layers aggiunti")            
@@ -2987,7 +2994,7 @@ class topog4qgis:
 			#self.bRAP.setEnabled(True)
 			#self.bPAP.setEnabled(True)
 			#self.bRRP.setEnabled(True)
-			#self.bPRP.setEnabled(True)
+			#self.bPRP.setEnabled(True)             
 		else:
 			self.iface.messageBar().pushMessage(
 				"importa PF/PSR da (.csv)",
@@ -3318,7 +3325,7 @@ class topog4qgis:
 
 	def elencoPfUfficiali(self):
 		print('Elenco dei punti fiduciali prelevati da TAF/EdM')
-		printList(self.PfTAF)
+		printList(self.PfTAF)		        
 
 	def distPfUfficiali(self):
 		"""
