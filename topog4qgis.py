@@ -893,6 +893,7 @@ def openLibretto_contorni(file):
 	ctrn = []
 	style = []
 	nv = 0
+	tmpSty = ""
 	tmp2 = []
 	for data in file:
 		# (righe con codice iniziale 7)
@@ -907,23 +908,38 @@ def openLibretto_contorni(file):
 			if num:
 				nv = num  
 			# definisce il numero max di vertici della riga
-			k = min(10,nv)
+			k = min(num,nv)
 			# li parcheggia in tmp2
-			for v in tmp[0:k]:   
+			for v in tmp[0:k]:
+				if (v == 'RC' or v == 'RT' or v == 'NC' or v == 'NT' or v == 'RP' or v == 'NP'): 
+					tmpSty = v                    
+					break            
 				if (v != 'RC' and v != 'RT' and v != 'NC' and v != 'NT' and v != 'RP' and v != 'NP'): 
-					tmp2.append(v)
+					tmp2.append(v)                    
 				else:
-					k = k -1                        		
-			#print("nv=",nv,"num=",num,"tmp2=",tmp2)	
-			tmpSty = tmp[k]
+					k = k -1                        		 
+			#print("nv=",nv,"num=",num,"k",k,"tmp=",tmp)
+			for v in tmp[0:len(tmp)]:
+				if (v == 'RC' or v == 'RT' or v == 'NC' or v == 'NT' or v == 'RP' or v == 'NP'):
+					tmpSty = v                
+			if (num == 0):
+				tmp2.append(lastV)
+				for v in tmp[0:len(tmp)]:
+					if (v != 'RC' and v != 'RT' and v != 'NC' and v != 'NT' and v != 'RP' and v != 'NP'):                    
+						tmp2.append(v)
+					if (v == 'RC' or v == 'RT' or v == 'NC' or v == 'NT' or v == 'RP' or v == 'NP'):                    
+						tmpSty = v                  
+				tmp2.pop(-1)                            
+			#print("nv=",nv,"num=",num,"k",k,"tmp2=",tmp2,"tmpSty",tmpSty)
+			lastV = tmp2[-1]                
 			# aggiorna il contatore dei vertici
 			nv -= k
 			# se è finito il contorno trasferisce nelle liste
 			if nv == 0:
 				ctrn.append(tmp2)
 				style.append(tmpSty)
-				#print(tmpSty)
-				tmp2 = []		            
+				tmp2 = []
+				tmpSty = ""                
 	# elimina il segno percentuale ove necessario
 	for k in ctrn:
 		for i,v in enumerate(k):
