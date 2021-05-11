@@ -2033,7 +2033,7 @@ class topog4qgis:
 		self.bErrPf.setDisabled(True)
         
 		self.bDistPf = QAction(QIcon(''),'Distanze PF',self.dlg)        
-		self.bDistPf.triggered.connect(self.distPfUfficiali)
+		self.bDistPf.triggered.connect(self.distanzePF)
 		mValid.addAction(self.bDistPf)
 		self.bDistPf.setDisabled(True)        
         
@@ -3307,11 +3307,13 @@ class topog4qgis:
 				j,x1,y1,z = pointArchivioCds(self.collimati,p1)                
 				# stampa
 				dTAF = math.sqrt((e1-e0)**2+(n1-n0)**2)   
-				d = math.sqrt((x1-x0)**2+(y1-y0)**2)  
+				d = math.sqrt((x1-x0)**2+(y1-y0)**2)
+				diff = dTAF - d                
 				# stampa				
-				msg = msg + '\n' + 'tra %s e %s' % (p0,p1)
-				msg = msg + '\n' + '%12.3f (TAF)' % (dTAF)
-				msg = msg + '\n' + '%12.3f (collimati)' % (d)
+				msg = msg + '\n' + 'tra %s e %s' % (p0,p1) 
+				msg = msg + '\n' + 'differenza %12.3f m' % abs(diff)
+				msg = msg + '\n' + '%12.3f m (TAF)' % (dTAF)
+				msg = msg + '\n' + '%12.3f m (collimati)' % (d)
 				msg = msg + '\n' + '---------------------------------'                        
 		printMsg(msg)
 # --------- inquiry functions --------------------
