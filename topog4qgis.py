@@ -1860,13 +1860,32 @@ class TAFdlg(QDialog):
 	def __init__(self,fileTAF):
 		QDialog.__init__(self)
 		# impostazione interfaccia utente
-		self.setWindowTitle('Importa TAF (.taf)')
-		self.resize(200,100)
-		combo = QComboBox(self)
-		combo.addItem(fileTAF[0])
-#		----------- box principale ---------------
-		vBox = QVBoxLayout()
-		self.setLayout(vBox)
+		self.resize(300,100)        
+		idProv = fileTAF[0].split('/')        
+		idProv = str(idProv[-1])
+		idProv = idProv.rstrip('.taf')        
+		ultimoComune = ""
+		listaComuni = []
+		with open(fileTAF[0], 'r', encoding='utf-8', errors='ignore') as file:
+			for line in file:
+				codiceComune = line[0:4]
+				if codiceComune != ultimoComune:
+					listaComuni.append(codiceComune)
+				ultimoComune = codiceComune 
+		external_box = QBoxLayout(QBoxLayout.TopToBottom)		
+		internal_box = QVBoxLayout()
+		groupbox = QGroupBox('TAF della provincia di ' + idProv)                                
+		groupbox.setLayout(internal_box)
+		external_box.addWidget(groupbox, 0)        
+		label = QLabel(self)
+		label.setGeometry(QRect(10,30,120,20))
+		label.setText('Seleziona il Comune da importare in QGIS:')
+		combo = QComboBox(self)		
+		combo.addItems(listaComuni)
+#		----------- box principale ---------------		        
+		internal_box.addWidget(label,0)
+		internal_box.addWidget(combo,0)         
+		self.setLayout(external_box)
 
 # ======================== classe principale ========================
 
