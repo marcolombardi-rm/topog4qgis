@@ -8,7 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        updated on           : 2021-04-24
+        updated on           : 2021-05-23
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1854,11 +1854,25 @@ class navigatorDlg(QDialog):
 						dlg.exec_()
 						break
 
+# 
+
+class TAFdlg(QDialog):
+	def __init__(self,fileTAF):
+		QDialog.__init__(self)
+		# impostazione interfaccia utente
+		self.setWindowTitle('Importa TAF (.taf)')
+		self.resize(200,100)
+		combo = QComboBox(self)
+		combo.addItem(fileTAF[0])
+#		----------- box principale ---------------
+		vBox = QVBoxLayout()
+		self.setLayout(vBox)
+
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.5'
-	build_date = '2021-04-24'
+	vers = '0.3.6'
+	build_date = '2021-05-23'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -1965,7 +1979,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.5")
+		self.dlg.setWindowTitle("topog4qgis v0.3.6")
 		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
@@ -1974,7 +1988,7 @@ class topog4qgis:
 		# ---------- file menu -----------------
 		mFile = mb.addMenu('File')
 
-		tmp = QAction(QIcon(''),'Nuovo',self.dlg)        
+		tmp = QAction(QIcon(''),'Nuovo Libretto da trattare',self.dlg)        
 		tmp.triggered.connect(self.new)
 		mFile.addAction(tmp)
 
@@ -2009,7 +2023,12 @@ class topog4qgis:
 
 		mFile.addMenu(expMenu)
 		self.expActRil.setDisabled(True)
-		self.expActCol.setDisabled(True)        
+		self.expActCol.setDisabled(True)
+
+		self.bTAF = QAction(QIcon(''),'Importa TAF (.taf)',self.dlg)        
+		self.bTAF.triggered.connect(self.importaTAF)
+		mFile.addAction(self.bTAF)
+		self.bTAF.setDisabled(False)        
 
 		# ---------- referencng menu --------------
 		mGeoref = mb.addMenu('Elaborazione')
@@ -2397,7 +2416,7 @@ class topog4qgis:
 	def importaCSV(self):
 		root = QgsProject.instance().layerTreeRoot()
 		# ---------- carica il libretto delle misure -----------
-		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file CSV','~','*.csv')
 		extent = fname[0][-3:]
 		n = 0
 		tmp = []		
@@ -2454,7 +2473,7 @@ class topog4qgis:
 			level=Qgis.Info
 		)
 		# ---------- carica il libretto delle misure -----------
-		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.dat *.pdf')
+		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona Libretto DAT/PDF','~','*.dat *.pdf')
 		extent = fname[0][-3:]		    
 		if fname[0] != "":        
 			isCel = False
@@ -2728,7 +2747,7 @@ class topog4qgis:
 		root = QgsProject.instance().layerTreeRoot()
 		#groupEDM = root.addGroup("EdM")
 		# dialogo selezione file
-		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.emp')
+		fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file EdM','~','*.emp')
 		extent = fname[0][-3:]
 		if fname[0] != "":
 			edm = loadFile(fname[0],extent)
@@ -2827,7 +2846,7 @@ class topog4qgis:
 			lastfgCod = ""
 			n = 0
 			# legge file
-			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.taf')
+			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file TAF','~','*.taf')
 			for i in range(-1,len(pfList)):
 				pfCod,fgCod,comCod = pfList[i].split('/')	# prende uno qualsiasi, il primo
 				fgCod = fgCod[0:-1]	# elimina ultimo carattere
@@ -2944,7 +2963,7 @@ class topog4qgis:
 		pfList = pfLista(self.misurati)
 		if pfList:
 			# legge file
-			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file CSV','~','*.csv')
 			for i in range(0,len(pfList)):
 				pf = pfList[i].split(';')[0]	# prende uno qualsiasi, il primo                
 				if fname[0] != "":
@@ -2970,7 +2989,7 @@ class topog4qgis:
 				)
 		if not pfList:
 			# legge file
-			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Open file','~','*.csv')
+			fname = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file CSV','~','*.csv')
 			for i in range(0,len(self.misurati)):
 				psr = self.misurati[i][0]                
 				if fname[0] != "":
@@ -3017,7 +3036,13 @@ class topog4qgis:
 				"Attenzione: il rilievo non sembra contenere punti fiduciali",
 				level=Qgis.Warning,
 				duration=4
-			)            
+			) 
+
+	def importaTAF(self):
+		fileTAF = QFileDialog.getOpenFileName(self.iface.mainWindow(),'Seleziona file TAF','~','*.taf')    
+		dlg = TAFdlg(fileTAF)
+		dlg.show()
+		dlg.exec_()      
             
 #	------------ calcolo parametri RTR  --------------------
 

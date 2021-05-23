@@ -2,7 +2,7 @@
 name=topog4qgis
 qgisMinimumVersion=3.0
 description= topog4qgis e' un plugin utile all'elaborazione di libretti PreGeo (.dat e .pdf) e alla trattazione di liste di punti (.csv) su QGIS mediante opportuna rototraslazione ai minimi quadrati. | Topographic tools for QGis. It allows to manage and visualize files for the italian cadastre update procedure (Pregeo)
-version=version 0.3.5
+version=version 0.3.6
 author=Marco Lombardi (contributor and actual maintainer)
 email=marco.lombardi.rm@gmail.com
 about= Thanks to Giuliano Curti (original author) and Giuseppe Patti (contributor), Marco Lombardi (contributor and actual maintainer)

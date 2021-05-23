@@ -7,7 +7,7 @@ def description():
 	return "Experimental topographic tools for qGis"
 
 def version():
-	return "0.3.5"
+	return "0.3.6"
 
 def icon():
     return ':/plugins/topog4qgis/icon.png'
@@ -16,7 +16,7 @@ def qgisMinimumVersion():
 	return "3.0"
 
 def authorName():
-	return "giuliano curti"
+	return "giuliano curti & marco lombardi"
 
 def classFactory(iface):
     from .topog4qgis import topog4qgis
