@@ -1856,7 +1856,37 @@ class navigatorDlg(QDialog):
 
 # 
 
-class TAFdlg(QDialog):
+class TAFdlg(QDialog):  
+	def elaboraTAF(self,file,idComune): 
+		with open(file, 'r', encoding='utf-8', errors='ignore') as file:
+			for data in file:
+				if data[0:4] == idComune:
+					comSez = data[4:5]
+					if comSez == " ":
+						comSez = ""
+					tmp = int(data[15:17])
+					fgAll = data[11:12]
+					fgCod = str(data[6:10])
+					if fgCod[2:3] == " ":
+						fgCod = "000" + fgCod[3:4]
+					if fgCod[0:2] == "  ":
+						fgCod = "00" + fgCod[2:4]    
+					if fgCod[0:2] == "10":
+						fgCod = "A" + fgCod[2:4]                            
+					if fgCod[0:2] == "11":
+						fgCod = "B" + fgCod[2:4]
+					if fgAll == " ":
+						fgAll = "0"
+					pfDescr = data[30:100]
+					y,x = data[102:114],data[115:127]
+					if tmp < 10:
+						if data[237:238] == "0": print("senza MONOGRAFIA")                   
+						stringaPF = "PF0%1s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez + ";" + x.strip() + ";" + y.strip() + ";" + pfDescr
+					else:
+						if data[237:238] == "0": print("senza MONOGRAFIA")                     
+						stringaPF = "PF%2s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez + ";" + x.strip() + ";" + y.strip() + ";" + pfDescr
+					print(stringaPF)    
+                    
 	def __init__(self,fileTAF):
 		QDialog.__init__(self)
 		# impostazione interfaccia utente
@@ -1892,7 +1922,8 @@ class TAFdlg(QDialog):
 		internal_box.addWidget(self.button1, 2, 0)
 		internal_box.addWidget(self.button2, 2, 1)        
 		self.setLayout(external_box)
-		self.button2.clicked.connect(self.close)        
+		self.button1.clicked.connect(lambda: self.elaboraTAF(fileTAF[0],combo.currentText()))
+		self.button2.clicked.connect(self.close)               
 
 # ======================== classe principale ========================
 
