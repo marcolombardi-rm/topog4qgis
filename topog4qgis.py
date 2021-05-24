@@ -1872,20 +1872,27 @@ class TAFdlg(QDialog):
 				if codiceComune != ultimoComune:
 					listaComuni.append(codiceComune)
 				ultimoComune = codiceComune 
-		external_box = QBoxLayout(QBoxLayout.TopToBottom)		
-		internal_box = QVBoxLayout()
-		groupbox = QGroupBox('TAF della provincia di ' + idProv)                                
+		external_box = QVBoxLayout()		
+		internal_box = QGridLayout()
+		groupbox = QGroupBox('TAF della provincia di ' + idProv)
+		groupbox.setAlignment(QtCore.Qt.AlignCenter)        
 		groupbox.setLayout(internal_box)
-		external_box.addWidget(groupbox, 0)        
+		external_box.addWidget(groupbox)        
 		label = QLabel(self)
 		label.setGeometry(QRect(10,30,120,20))
 		label.setText('Seleziona il Comune da importare in QGIS:')
 		combo = QComboBox(self)		
 		combo.addItems(listaComuni)
-#		----------- box principale ---------------		        
-		internal_box.addWidget(label,0)
-		internal_box.addWidget(combo,0)         
+		self.button1 = QPushButton("Crea layer con il Comune selezionato")
+		self.button2 = QPushButton("Esci")        
+#		----------- box principale ---------------	
+		internal_box.setAlignment(QtCore.Qt.AlignCenter)	        
+		internal_box.addWidget(label,0,0)
+		internal_box.addWidget(combo,0,1)
+		internal_box.addWidget(self.button1, 2, 0)
+		internal_box.addWidget(self.button2, 2, 1)        
 		self.setLayout(external_box)
+		self.button2.clicked.connect(self.close)        
 
 # ======================== classe principale ========================
 
@@ -1980,7 +1987,7 @@ class topog4qgis:
 		self.rubBnd.setColor(QColor('#ff8800'))
 		# create our GUI dialog
 		self.dlg = QDialog()
-		#self.dlg.setWindowFlags(Qt.CustomizeWindowHint)
+		#self.dlg.setWindowFlags(Qt.Window)
 #		con il clickTool qui non si riesce più a prendere il comando del mouse dopo aver eseguito un comando esterno
 		# connect the layer changed handler to a signal that the TOC layer has changed
 		self.iface.currentLayerChanged.connect(self.myHandleLayerChange)
@@ -2044,7 +2051,7 @@ class topog4qgis:
 		self.expActRil.setDisabled(True)
 		self.expActCol.setDisabled(True)
 
-		self.bTAF = QAction(QIcon(''),'Importa TAF (.taf)',self.dlg)        
+		self.bTAF = QAction(QIcon(''),'Importa TAF (.taf) in QGIS',self.dlg)        
 		self.bTAF.triggered.connect(self.importaTAF)
 		mFile.addAction(self.bTAF)
 		self.bTAF.setDisabled(False)        
