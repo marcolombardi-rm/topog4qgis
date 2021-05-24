@@ -1856,8 +1856,62 @@ class navigatorDlg(QDialog):
 
 # 
 
-class TAFdlg(QDialog):  
-	def elaboraTAF(self,file,idComune): 
+class TAFdlg(QDialog): 
+
+	def newLayer(self,layType,layName,attrLst):
+		# create Point layer
+		self.cLayer = QgsVectorLayer(layType,layName,"memory")
+		self.provider = self.cLayer.dataProvider()
+		# add fields
+		for a in attrLst:
+			self.provider.addAttributes([QgsField(a[0],a[1])])
+		# aggiunge al registry
+		QgsProject.instance().addMapLayer(self.cLayer, True)
+
+	def creaPointLayer(self,title,attrs,vrts):
+		"""
+			crea un layer point
+			- title	titolo del layer
+			- attrs	attributi
+			- vrts	elenco vertici
+						i[0]	indice
+						i[3+i]	attributo i.mo
+		"""
+		self.newLayer('Point',title,attrs)	# lavora sulla variabile globale self.cLayer
+		nAttrs=len(attrs)
+		# Enter editing mode
+		self.cLayer.startEditing()
+		# parsing dei vertici
+		feat = QgsFeature()
+		for i in vrts:            
+			if len(i) < nAttrs:	# deve avere gli n attributi + la coppia x,y
+				print('registrazione',i,'errata')
+			else:            
+				feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(i[1],i[2])))
+				feat.initAttributes(nAttrs)
+				feat.setAttribute(0,i[0])                
+				for k in range(nAttrs):                 
+					feat.setAttribute(k,i[k])
+				self.cLayer.addFeatures([feat])
+		# Commit changes
+		self.cLayer.commitChanges()
+		# attiva la label
+		text_format = QgsTextFormat()
+		label = QgsPalLayerSettings()
+		label.fieldName = 'indice'
+		label.enabled = True
+		label.setFormat(text_format)
+		label.placement = QgsPalLayerSettings.Line
+		labeler = QgsVectorLayerSimpleLabeling(label)
+		self.cLayer.setLabeling(labeler)
+		self.cLayer.triggerRepaint()
+		# update layer's extent
+		self.cLayer.updateExtents()
+		# cancella la selezione (che non so come sia attivata)
+		self.cLayer.removeSelection()
+ 
+	def elaboraTAF(self,file,idComune):
+		self.PfTAF = []		# archivio PF    
 		with open(file, 'r', encoding='utf-8', errors='ignore') as file:
 			for data in file:
 				if data[0:4] == idComune:
@@ -1879,17 +1933,41 @@ class TAFdlg(QDialog):
 						fgAll = "0"
 					pfDescr = data[30:100]
 					y,x = data[102:114],data[115:127]
-					if tmp < 10:
-						if data[237:238] == "0": print("senza MONOGRAFIA")                   
-						stringaPF = "PF0%1s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez + ";" + x.strip() + ";" + y.strip() + ";" + pfDescr
+					if data[237:238] == "0": 
+						mon = 0
+					else: 
+						mon = "SI, " + data[149:164]                    
+					if tmp < 10:                            
+						self.PfTAF.append(["PF0%1s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])					
 					else:
-						if data[237:238] == "0": print("senza MONOGRAFIA")                     
-						stringaPF = "PF%2s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez + ";" + x.strip() + ";" + y.strip() + ";" + pfDescr
-					print(stringaPF)    
-                    
+						self.PfTAF.append(["PF%2s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])
+		#print(self.PfTAF)
+		self.creaPointLayer("TAF_" + idComune,[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAF)                    
+		self.layTAFPf = self.cLayer
+        
+		green_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
+		red_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
+		c1 = QgsRendererCategory(0,red_symbol,"NO",True)
+		c2 = QgsRendererCategory(None,green_symbol,"SI",True)
+		renderer = QgsCategorizedSymbolRenderer("MONOGRAFIA", [c1,c2])
+
+		self.cLayer.setRenderer(renderer)        
+#		symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
+#		self.cLayer.renderer().setSymbol(symbol)
+        
+#		layer = QgsProject.instance().mapLayersByName("TAF_" + idComune)[0]
+#		renderer = QgsMarkerSymbol()        
+#		renderer.symbolLayers()[0].setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromField("MONONOGRAFIA") );
+#		layer.setRenderer(QgsSingleSymbolRenderer(renderer))
+#		layer.triggerRepaint()
+        
+		self.cLayer.setLabelsEnabled(True)
+		print('Layer punti fiduciali completato')    
+      
 	def __init__(self,fileTAF):
 		QDialog.__init__(self)
 		# impostazione interfaccia utente
+		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)      
 		self.resize(300,100)        
 		idProv = fileTAF[0].split('/')        
 		idProv = str(idProv[-1])
@@ -2018,7 +2096,7 @@ class topog4qgis:
 		self.rubBnd.setColor(QColor('#ff8800'))
 		# create our GUI dialog
 		self.dlg = QDialog()
-		#self.dlg.setWindowFlags(Qt.Window)
+		#self.dlg.setWindowFlags(Qt.WindowStaysOnTopHint)        
 #		con il clickTool qui non si riesce più a prendere il comando del mouse dopo aver eseguito un comando esterno
 		# connect the layer changed handler to a signal that the TOC layer has changed
 		self.iface.currentLayerChanged.connect(self.myHandleLayerChange)
