@@ -1934,7 +1934,7 @@ class TAFdlg(QDialog):
 					pfDescr = data[30:100]
 					y,x = data[102:114],data[115:127]
 					if data[237:238] == "0": 
-						mon = 0
+						mon = "NO"
 					else: 
 						mon = "SI, " + data[149:164]                    
 					if tmp < 10:                            
@@ -1945,15 +1945,16 @@ class TAFdlg(QDialog):
 		self.creaPointLayer("TAF_" + idComune,[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAF)                    
 		self.layTAFPf = self.cLayer
         
-		green_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
-		red_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
-		c1 = QgsRendererCategory(0,red_symbol,"NO",True)
-		c2 = QgsRendererCategory(None,green_symbol,"SI",True)
-		renderer = QgsCategorizedSymbolRenderer("MONOGRAFIA", [c1,c2])
+#		green_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
+#		red_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
+#		c1 = QgsRendererCategory(0,red_symbol,"NO",True)
+#		c2 = QgsRendererCategory(1,green_symbol,"SI",True)
+#		renderer = QgsCategorizedSymbolRenderer("MONOGRAFIA", [c1,c2])
 
-		self.cLayer.setRenderer(renderer)        
-#		symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
-#		self.cLayer.renderer().setSymbol(symbol)
+#		self.cLayer.setRenderer(renderer)        
+            
+		symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
+		self.cLayer.renderer().setSymbol(symbol)
         
 #		layer = QgsProject.instance().mapLayersByName("TAF_" + idComune)[0]
 #		renderer = QgsMarkerSymbol()        
@@ -1991,12 +1992,14 @@ class TAFdlg(QDialog):
 		label.setText('Seleziona il Comune da importare in QGIS:')
 		combo = QComboBox(self)		
 		combo.addItems(listaComuni)
+		cbox = QCheckBox("Duplica PF senza monografia su layer separato")        
 		self.button1 = QPushButton("Crea layer con il Comune selezionato")
 		self.button2 = QPushButton("Esci")        
 #		----------- box principale ---------------	
 		internal_box.setAlignment(QtCore.Qt.AlignCenter)	        
 		internal_box.addWidget(label,0,0)
 		internal_box.addWidget(combo,0,1)
+		internal_box.addWidget(cbox,1,0)
 		internal_box.addWidget(self.button1, 2, 0)
 		internal_box.addWidget(self.button2, 2, 1)        
 		self.setLayout(external_box)
