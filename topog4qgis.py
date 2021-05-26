@@ -1911,7 +1911,8 @@ class TAFdlg(QDialog):
 		self.cLayer.removeSelection()
  
 	def elaboraTAF(self,file,idComune):
-		self.PfTAF = []		# archivio PF    
+		self.PfTAF = []			# archivio PF
+		self.PfTAFnoMON = []	# archivio PF senza MONOGRAFIA		
 		with open(file, 'r', encoding='utf-8', errors='ignore') as file:
 			for data in file:
 				if data[0:4] == idComune:
@@ -1935,34 +1936,31 @@ class TAFdlg(QDialog):
 					y,x = data[102:114],data[115:127]
 					if data[237:238] == "0": 
 						mon = "NO"
+						if tmp < 10:                            
+							self.PfTAFnoMON.append(["PF0%1s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])					
+						else:
+							self.PfTAFnoMON.append(["PF%2s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])
 					else: 
 						mon = "SI, " + data[149:164]                    
 					if tmp < 10:                            
 						self.PfTAF.append(["PF0%1s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])					
 					else:
 						self.PfTAF.append(["PF%2s/%3s%1s/" % (tmp,fgCod[-3:],fgAll) + idComune + comSez,float(x.strip()),float(y.strip()),pfDescr,mon])
-		#print(self.PfTAF)
-		self.creaPointLayer("TAF_" + idComune,[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAF)                    
-		self.layTAFPf = self.cLayer
-        
-#		green_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
-#		red_symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
-#		c1 = QgsRendererCategory(0,red_symbol,"NO",True)
-#		c2 = QgsRendererCategory(1,green_symbol,"SI",True)
-#		renderer = QgsCategorizedSymbolRenderer("MONOGRAFIA", [c1,c2])
 
-#		self.cLayer.setRenderer(renderer)        
+		self.creaPointLayer("TAF_" + idComune,[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAF)                    
+		self.layTAFPf = self.cLayer        
             
 		symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'green'})
 		self.cLayer.renderer().setSymbol(symbol)
-        
-#		layer = QgsProject.instance().mapLayersByName("TAF_" + idComune)[0]
-#		renderer = QgsMarkerSymbol()        
-#		renderer.symbolLayers()[0].setDataDefinedProperty(QgsSymbolLayer.PropertyFillColor, QgsProperty.fromField("MONONOGRAFIA") );
-#		layer.setRenderer(QgsSingleSymbolRenderer(renderer))
-#		layer.triggerRepaint()
-        
 		self.cLayer.setLabelsEnabled(True)
+		
+		if self.cbox.isChecked():
+			self.creaPointLayer("TAF_" + idComune + "-PFnoMON",[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAFnoMON)                    
+			self.layPfTAFnoMON = self.cLayer
+			symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
+			self.cLayer.renderer().setSymbol(symbol)
+			self.cLayer.setLabelsEnabled(True)			
+
 		print('Layer punti fiduciali completato')    
       
 	def __init__(self,fileTAF):
@@ -1992,14 +1990,14 @@ class TAFdlg(QDialog):
 		label.setText('Seleziona il Comune da importare in QGIS:')
 		combo = QComboBox(self)		
 		combo.addItems(listaComuni)
-		cbox = QCheckBox("Duplica PF senza monografia su layer separato")        
+		self.cbox = QCheckBox("Duplica PF senza monografia su layer separato")        
 		self.button1 = QPushButton("Crea layer con il Comune selezionato")
 		self.button2 = QPushButton("Esci")        
 #		----------- box principale ---------------	
 		internal_box.setAlignment(QtCore.Qt.AlignCenter)	        
 		internal_box.addWidget(label,0,0)
 		internal_box.addWidget(combo,0,1)
-		internal_box.addWidget(cbox,1,0)
+		internal_box.addWidget(self.cbox,1,0)
 		internal_box.addWidget(self.button1, 2, 0)
 		internal_box.addWidget(self.button2, 2, 1)        
 		self.setLayout(external_box)
