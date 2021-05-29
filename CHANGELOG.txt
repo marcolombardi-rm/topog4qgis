@@ -1,4 +1,7 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2021-05-29 v0.3.6
+	aggiunta nel menu file la possibilita' di importare la TAF su QGIS, una volta scelto il comune si puo' scegliere di creare un layer con i PF privi di monografia (avranno colore rosso)
+	l'elaborazione di file edm permette adesso di distinguere tra PF privi di monografia e con posizione cartografica diversa da quella indicata in TAF (avranno colore viola)
 2021-05-01 v0.3.5
 	implementata la gestione di contorni con vertici su piu' righe
 	piccole variazioni grafiche (simboli pf/psr)

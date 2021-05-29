@@ -952,6 +952,7 @@ def openEDM_pf(file):
 		restituisce la lista pf[] dei punti fiduciali di un EdM (lista di liste: [pfId,x,y,z=0])
 	"""
 	pf = []
+	pfcart = []	
 	for data in file:
 		# (righe con codice iniziale 8)
 		if data[0:1] == '8':
@@ -960,7 +961,13 @@ def openEDM_pf(file):
 				tmp = data.split("|")
 				note = str(tmp[1])
 				pf.append([note,float(tmp[3]),float(tmp[2]),0])	# NB: mette prima Nord e poi Est
-	return pf
+		if data[0:1] == '6':
+			# (e secondo campo "PFCART")
+			if data[2:8] == 'PFCART':
+				tmp = data.split("|")
+				note = str(tmp[2])
+				pfcart.append([note,float(tmp[4]),float(tmp[3]),0])	# NB: mette prima Nord e poi Est				
+	return pf, pfcart
 
 def openEDM_vertici(file):
 	"""
@@ -2902,7 +2909,7 @@ class topog4qgis:
 			edm = loadFile(fname[0],extent)
 			print('Lette %d registrazioni' % len(edm))
 			# ---- legge punti fiduciali dell'EdM ---------
-			self.edmPf = openEDM_pf(edm)
+			self.edmPf,self.edmPfcart = openEDM_pf(edm)
 			print('Lette %d punti fiduciali' % len(self.edmPf))
 			# ---- legge vertici dell'EdM --------
 			self.edmVrts = openEDM_vertici(edm)
@@ -2919,6 +2926,13 @@ class topog4qgis:
 				self.cLayer.renderer().setSymbol(symbol)
 				self.cLayer.setLabelsEnabled(True)                
 				print('Layer punti fiduciali completato')
+			if len(self.edmPfcart):
+				self.creaPointLayer('EdM_pf da verificare',[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["Z",QVariant.Double]],self.edmPfcart)
+				self.layEdmPf = self.cLayer
+				symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'purple'})
+				self.cLayer.renderer().setSymbol(symbol)
+				self.cLayer.setLabelsEnabled(True)                
+				print('Layer punti fiduciali da verificare completato')				
 				#child0 = root.children()[0]
 				#tmpLayer = child0.clone()
 				#print (tmpLayer.name())
