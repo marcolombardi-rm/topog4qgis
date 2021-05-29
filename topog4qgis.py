@@ -1933,7 +1933,7 @@ class TAFdlg(QDialog):
 					if fgAll == " ":
 						fgAll = "0"
 					pfDescr = data[30:100]
-					y,x = data[102:114],data[115:127]
+					y,x = data[102:114],data[116:125]
 					if data[237:238] == "0": 
 						mon = "NO"
 						if tmp < 10:                            
@@ -1954,12 +1954,15 @@ class TAFdlg(QDialog):
 		self.cLayer.renderer().setSymbol(symbol)
 		self.cLayer.setLabelsEnabled(True)
 		
-		if self.cbox.isChecked():
+		if self.cbox1.isChecked():
 			self.creaPointLayer("TAF_" + idComune + "-PFnoMON",[["indice",QVariant.String],["X",QVariant.Double],["Y",QVariant.Double],["DESCRIZIONE",QVariant.String],["MONONOGRAFIA",QVariant.String]],self.PfTAFnoMON)                    
 			self.layPfTAFnoMON = self.cLayer
 			symbol = QgsMarkerSymbol.createSimple({'name': 'triangle', 'color': 'red'})
 			self.cLayer.renderer().setSymbol(symbol)
-			self.cLayer.setLabelsEnabled(True)			
+			if self.cbox2.isChecked():            
+				self.cLayer.setLabelsEnabled(True)	
+			else:
+				self.cLayer.setLabelsEnabled(False)                
 
 		print('Layer punti fiduciali completato')    
       
@@ -1990,19 +1993,29 @@ class TAFdlg(QDialog):
 		label.setText('Seleziona il Comune da importare in QGIS:')
 		combo = QComboBox(self)		
 		combo.addItems(listaComuni)
-		self.cbox = QCheckBox("Duplica PF senza monografia su layer separato")        
+		self.cbox1 = QCheckBox("Duplica PF senza monografia su layer separato")
+		self.cbox2 = QCheckBox("Abilita etichette")
+		self.cbox2.setEnabled(False)
+		self.cbox1.toggled.connect(self.cbox1_active)        
 		self.button1 = QPushButton("Crea layer con il Comune selezionato")
 		self.button2 = QPushButton("Esci")        
 #		----------- box principale ---------------	
 		internal_box.setAlignment(QtCore.Qt.AlignCenter)	        
 		internal_box.addWidget(label,0,0)
 		internal_box.addWidget(combo,0,1)
-		internal_box.addWidget(self.cbox,1,0)
+		internal_box.addWidget(self.cbox1,1,0)
+		internal_box.addWidget(self.cbox2,1,1)        
 		internal_box.addWidget(self.button1, 2, 0)
 		internal_box.addWidget(self.button2, 2, 1)        
 		self.setLayout(external_box)
 		self.button1.clicked.connect(lambda: self.elaboraTAF(fileTAF[0],combo.currentText()))
-		self.button2.clicked.connect(self.close)               
+		self.button2.clicked.connect(self.close)    
+
+	def cbox1_active(self, on):
+		if on:
+			self.cbox2.setEnabled(True)
+		else:
+			self.cbox2.setEnabled(False)        
 
 # ======================== classe principale ========================
 
@@ -2205,7 +2218,7 @@ class topog4qgis:
 		self.bImpEDM.triggered.connect(self.importaEDM)
 		#mFile.addAction(tmp)
 		mInquiry.addAction(self.bImpEDM)
-		self.bImpEDM.setDisabled(True)        
+		self.bImpEDM.setDisabled(False)        
 
 		self.bViewLib = QAction(QIcon(''),'Vedi Libretto',self.dlg)        
 		self.bViewLib.triggered.connect(self.librViewTool)
@@ -3046,7 +3059,7 @@ class topog4qgis:
 									txt = "PF%2s/%3s%1s/" % (tmp,fgCod,fgAll) + comCod
 								#print(txt)
 								if txt in pfList:	# matcha anche il pf
-									y,x = data[102:114],data[115:127]
+									y,x = data[102:114],data[116:125]
 									print("Trovato",txt,x,y)
 									self.PfTAF.append([txt,float(x),float(y),0])
 							#lastfgCod = fgCod				
