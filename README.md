@@ -24,6 +24,8 @@ Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Rife
 
 Dalla versione 0.3.6 con la possibilità di importare su QGIS il file TAF direttamente dal menu File viene introdotto uno stumento utile allo studio preliminare dei Punti Fiduciali oggetto del rilievo.
 
+NOTA: lo schema CSV accettato dal plugin e' il seguente nome;x;y;z;note
+
 Giuliano Curti (original author) e Giuseppe Patti (contributor)
 
 Marco Lombardi (contributor and actual maintainer)
