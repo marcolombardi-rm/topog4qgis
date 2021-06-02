@@ -22,7 +22,7 @@ All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete 
 
 Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA.
 
-Dalla versione 0.3.6 viene introdotto uno stumento utile per lo studio preliminare dei Punti Fiduciali oggetto di rilievo ovvero viene introdotta la possibilità di importare su QGIS il file TAF direttamente dal menu File.
+Dalla versione 0.3.6 con la possibilità di importare su QGIS il file TAF direttamente dal menu File viene introdotto uno stumento utile allo studio preliminare dei Punti Fiduciali oggetto del rilievo.
 
 Giuliano Curti (original author) e Giuseppe Patti (contributor)
 
