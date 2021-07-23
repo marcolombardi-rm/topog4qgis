@@ -1,4 +1,4 @@
-topog4qgis v0.3.6
+topog4qgis v0.3.7
 ==========
 VERSIONE ITALIANA
 =================

@@ -8,7 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        updated on           : 2021-05-23
+        updated on           : 2021-07-23
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -1083,12 +1083,12 @@ def distanzeRidotte(archivio,a_giro):
 		fornisce per ogni stazione le distanza ridotte di ogni vertice misurato
 		parte di codice uguale a polar2rect()
 	"""
-	list = []
+	list = []  
 	for line in archivio:
 		tmp = line.split('|')
 		cod = tmp.pop(0)		# questo elimina il primo campo	
-		if cod == '1'or cod == '2':	# così scarta tutto quello che non interessa
-			tmp.pop()				# elimina l'ultimo campo sempre vuoto
+		if cod == '2' or cod == '1':	# così scarta tutto quello che non interessa
+			print(tmp)        
 			if ',' not in tmp[1]:	# altrimenti sarebbe una lettura gps
 				# E' una stazione?
 				if cod == '1':
@@ -1103,6 +1103,9 @@ def distanzeRidotte(archivio,a_giro):
 						d = float(tmp[3])
 						dr = d*abs(math.cos(av))
 						print("distanza %s - %s: %12.3f, azimut: %12.4f" % (staz,pnt,dr,float(tmp[1])))
+					if len(tmp) == 4:	# punto non dotato di altimetria                    
+						pnt = tmp[0]
+						print("distanza %s - %s: %12.3f, azimut: %12.4f" % (staz,pnt,float(tmp[2]),float(tmp[1])))                        
 	return list
 
 def pfLista(libretto):
@@ -1110,11 +1113,23 @@ def pfLista(libretto):
 		elenco dei PF rilevati
 	"""
 	list = []
+	comunt_list = [] #aggiunto Michele Gaspari
+	comunt_dict = dict() #aggiunto Michele Gaspari    
 	for line in libretto:
-		if "/" in line[0]:        
-			list.append(line[0])           
-	return list
-
+		if "/" in line[0]:
+			cod_com = line[0][::-1][:line[0].index("/")][::-1] #da qui aggiunto da Michele Gaspari
+			try:
+				float(cod_com [3]) #verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale 
+				list.append(line[0])
+			except:
+				if comunt_list == []:
+					comunt_file = open(os.path.join(os.path.dirname(__file__), "comunt.dat"), "r", encoding='unicode_escape')
+					comunt_list = comunt_file.readline().split('@B')[1:]
+					for comune in comunt_list:
+						comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
+				nomePF = line[0][:line[0].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:]
+				list.append(nomePF) #fine aggiunta Michele Gaspari	
+	return list    
 # ---------- operation functions ---------
 
 def elaborazioneGps(myGps):
@@ -1165,7 +1180,10 @@ def polar2rect(rilievo,a_giro):
 	# inserisce la stazione
 	stazione = rilievo[0]
 	stazDiMira = stazione[0]
-	hs = float(stazione[1])
+	try:
+		hs = float(stazione[1])
+	except:
+		hs = 0.00
 	nRiga = stazione[-1]
 	coordRet.append([stazDiMira,0.0,0.0,0.0,stazione[2],stazDiMira,nRiga])
 	for i in range(1,len(rilievo)):
@@ -1186,12 +1204,18 @@ def polar2rect(rilievo,a_giro):
 			if len(punto) == 8:			
 				nota = punto[5]
 			elif len(punto) == 7:
-				nota = ""                 
+				nota = "senza descrizione"                 
 		if len(punto) == 6:	# punto senza altimetria (NB: c'è sempre un campo vuoto alla fine)
 			dr = float(punto[2])
 			#print(dr)			
 			nota = punto[3]
-			#print(nota)			
+			#print(nota)
+		if len(punto) == 5:
+			dr = float(punto[2])
+			#print(dr)			
+			nota = punto[3]
+			#print(nota)        
+			nota = "senza descrizione"                        
 		#else:
 		#	dr = 0.0	# dovrebbe mettere tutto a zero
 		#	nota = 'polar2rect: numero di parametri non compatibili'
@@ -1204,7 +1228,8 @@ def polar2rect(rilievo,a_giro):
 		#print(punto[0],"ah",fromRad(ah,a_giro),"av",fromRad(av,a_giro),"dr",dr,"nota",nota)		
 		# salva
 		coordRet.append([cod,x,y,z,nota,stazDiMira,nRiga])
-		#print('punto %s %f %f %f' % (str(punto),x,y,z))        
+		#print('punto %s %f %f %f' % (str(punto),x,y,z))
+		#print(len(punto),punto)        
 	return coordRet
 
 def rect2polar(x,y,z,x0,y0,z0,a_giro):
@@ -2027,8 +2052,8 @@ class TAFdlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.6'
-	build_date = '2021-05-23'
+	vers = '0.3.7'
+	build_date = '2021-07-23'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -2135,7 +2160,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.6")
+		self.dlg.setWindowTitle("topog4qgis v0.3.7")
 		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
@@ -2636,6 +2661,34 @@ class topog4qgis:
 			isGps = False
 			counter = 1            
 			self.libretto = loadFile(fname[0],extent)
+            #da qui aggiunto su input di Michele Gaspari
+			tmp_libretto = []
+			new_libretto = []            
+			comunt_list = []
+			comunt_dict = dict()
+			nomePFold = []
+			nomePFnew = []            
+			for line in self.libretto:
+				tmp_line = line.split("|")               
+				if "/" in tmp_line[1]:                
+					cod_com = tmp_line[1][::-1][:tmp_line[1].index("/")][::-1]                    
+					try:
+						float(cod_com[3])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale                         
+					except:
+						old_com_cod = cod_com                        
+						if comunt_list == []:
+							comunt_file = open(os.path.join(os.path.dirname(__file__), "comunt.dat"), "r", encoding='unicode_escape')
+							comunt_list = comunt_file.readline().split('@B')[1:]
+							for comune in comunt_list:
+								comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
+						new_com_cod = comunt_dict [cod_com [:4]] [0] + cod_com [4:]                                
+						nomePFold.append(tmp_line[1])
+						nomePFnew.append(tmp_line[1][:tmp_line[1].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:])
+			#print(old_com_cod,new_com_cod)        
+			#print(set(nomePFold))
+			#print(set(nomePFnew))                        
+			#print(self.libretto)            
+			#fine aggiunta su input di Michele Gaspari                                                
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
 			myGps = openLibretto_gps(self.libretto)
