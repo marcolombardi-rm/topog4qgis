@@ -1087,14 +1087,14 @@ def distanzeRidotte(archivio,a_giro):
 	for line in archivio:
 		tmp = line.split('|')
 		cod = tmp.pop(0)		# questo elimina il primo campo	
-		if cod == '2' or cod == '1':	# così scarta tutto quello che non interessa
-			print(tmp)        
+		if cod == '2' or cod == '1':	# così scarta tutto quello che non interessa		
+			tmp.pop()            
 			if ',' not in tmp[1]:	# altrimenti sarebbe una lettura gps
 				# E' una stazione?
 				if cod == '1':
 					staz = tmp[0]
 				else:
-					if len(tmp) == 6:	# punto dotato di altimetria                    
+					if len(tmp) == 6 or len(tmp) == 5:	# punto dotato di altimetria                    
 						pnt = tmp[0]
 						# converte zenith in radianti
 						av = toRad(float(tmp[2]),a_giro)
@@ -1103,7 +1103,7 @@ def distanzeRidotte(archivio,a_giro):
 						d = float(tmp[3])
 						dr = d*abs(math.cos(av))
 						print("distanza %s - %s: %12.3f, azimut: %12.4f" % (staz,pnt,dr,float(tmp[1])))
-					if len(tmp) == 4:	# punto non dotato di altimetria                    
+					if len(tmp) == 4 or len(tmp) == 3:	# punto non dotato di altimetria                    
 						pnt = tmp[0]
 						print("distanza %s - %s: %12.3f, azimut: %12.4f" % (staz,pnt,float(tmp[2]),float(tmp[1])))                        
 	return list
@@ -1119,7 +1119,7 @@ def pfLista(libretto):
 		if "/" in line[0]:
 			cod_com = line[0][::-1][:line[0].index("/")][::-1] #da qui aggiunto da Michele Gaspari
 			try:
-				float(cod_com [3]) #verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale 
+				float(cod_com [2]) #verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale 
 				list.append(line[0])
 			except:
 				if comunt_list == []:
@@ -2673,7 +2673,7 @@ class topog4qgis:
 				if "/" in tmp_line[1]:                
 					cod_com = tmp_line[1][::-1][:tmp_line[1].index("/")][::-1]                    
 					try:
-						float(cod_com[3])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale                         
+						float(cod_com[2])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale                         
 					except:
 						old_com_cod = cod_com                        
 						if comunt_list == []:
