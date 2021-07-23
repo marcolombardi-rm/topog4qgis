@@ -2684,7 +2684,7 @@ class topog4qgis:
 						new_com_cod = comunt_dict [cod_com [:4]] [0] + cod_com [4:]                                
 						nomePFold.append(tmp_line[1])
 						nomePFnew.append(tmp_line[1][:tmp_line[1].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:])
-			#print(old_com_cod,new_com_cod)        
+			print(old_com_cod,new_com_cod)        
 			#print(set(nomePFold))
 			#print(set(nomePFnew))                        
 			#print(self.libretto)            
