@@ -732,8 +732,8 @@ def loadFile(fname,extent):
 			f.readline()
 		except:
 			f = codecs.open(fname, 'r', 'cp1252')
-		for data in f:
-			if 'RELAZIONE' and 'TECNICA' in data:
+		for data in f:        
+			if '6|' and 'RELAZIONE' and 'TECNICA' in data.upper():
 				break	# finisce la lettura
 			# pulisce la riga
 			data = data.rstrip('\n')
@@ -1115,20 +1115,27 @@ def pfLista(libretto):
 	list = []
 	comunt_list = [] #aggiunto Michele Gaspari
 	comunt_dict = dict() #aggiunto Michele Gaspari    
-	for line in libretto:
+	for line in libretto:     
 		if "/" in line[0]:
-			cod_com = line[0][::-1][:line[0].index("/")][::-1] #da qui aggiunto da Michele Gaspari
+			cod_com = line[0].split("/")#line[0][::-1][:line[0].index("/")][::-1]
+			cod_com = cod_com[2]                                          
 			try:
-				float(cod_com [2]) #verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale 
-				list.append(line[0])
-			except:
+				if len(cod_com) > 4: 
+					cod_com = cod_com[:-1]                           
+					float(cod_com[-1])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale
+				else:
+					float(cod_com[-1])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale 
+					list.append(line[0])
+			except:           
 				if comunt_list == []:
 					comunt_file = open(os.path.join(os.path.dirname(__file__), "comunt.dat"), "r", encoding='unicode_escape')
 					comunt_list = comunt_file.readline().split('@B')[1:]
 					for comune in comunt_list:
 						comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
 				nomePF = line[0][:line[0].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:]
-				list.append(nomePF) #fine aggiunta Michele Gaspari	
+				print(nomePF)                
+				list.append(nomePF) #fine aggiunta Michele Gaspari
+			list.append(line[0])                
 	return list    
 # ---------- operation functions ---------
 
@@ -2671,9 +2678,15 @@ class topog4qgis:
 			for line in self.libretto:
 				tmp_line = line.split("|")               
 				if "/" in tmp_line[1]:                
-					cod_com = tmp_line[1][::-1][:tmp_line[1].index("/")][::-1]                    
+					cod_com = tmp_line[1].split("/")#tmp_line[1][::-1][:tmp_line[1].index("/")][::-1]
+					cod_com = cod_com[2]
+					old = ""                    
 					try:
-						float(cod_com[2])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale                         
+						if len(cod_com) > 4: 
+							cod_com = cod_com[:-1]                           
+							float(cod_com[-1])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale
+						else:
+							float(cod_com[-1])#verifica se il quarto carattere è un numero per capire se si tratta del codici Comuni fiscale o del vecchio codice catastale                            
 					except:
 						old_com_cod = cod_com                        
 						if comunt_list == []:
@@ -2682,12 +2695,11 @@ class topog4qgis:
 							for comune in comunt_list:
 								comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
 						new_com_cod = comunt_dict [cod_com [:4]] [0] + cod_com [4:]                                
-						#nomePFold.append(tmp_line[1])
-						#nomePFnew.append(tmp_line[1][:tmp_line[1].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:])
-			old, new = old_com_cod, new_com_cod
-			for i, v in enumerate(self.libretto):
-				if old in v:
-					self.libretto[i] = v.replace(old, new)                                                
+						old, new = old_com_cod, new_com_cod
+			if old != "":                        
+				for i, v in enumerate(self.libretto):
+					if old in v:
+						self.libretto[i] = v.replace(old, new)                                                
 			#fine aggiunta su input di Michele Gaspari                                                
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
