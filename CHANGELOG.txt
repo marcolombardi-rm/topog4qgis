@@ -1,4 +1,8 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2021-07-24 v0.3.7
+	questa versione raccoglie diversi contributi del Geometra Michele Gaspari: il primo contributo permette di convertire automaticamente i vecchi codici catastali attraverso l'uso del file comunt.dat fornito dall'agenzia delle entrate; 
+	il secondo contributo tratta in maniera piu' efficace il riconoscimento della relazione tecnica; il terzo contributo risolve il bug dovuto alla mancanza del dato altimetrico sulle righe 1 di alcuni vecchi libretti.
+	vengono inoltre risolti altri piccoli bug che si presentevano quando nelle righe 2 delle osservazioni celerimetriche non vi era il campo descrizione.
 2021-05-29 v0.3.6
 	aggiunta nel menu file la possibilita' di importare la TAF su QGIS, una volta scelto il comune si puo' scegliere di creare un layer con i PF privi di monografia (avranno colore rosso)
 	l'elaborazione di file edm permette adesso di distinguere tra PF privi di monografia e con posizione cartografica diversa da quella indicata in TAF (avranno colore viola)

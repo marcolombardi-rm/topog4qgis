@@ -720,7 +720,7 @@ def loadFile(fname,extent):
 							tmp = tmp[9:]
 							tmp = tmp[:len(tmp)-10]
 							res = tmp.strip('][').split('<nr>')  
-							for i in (i for i,x in enumerate(res) if x == '6|                     ***** Relazione  Tecnica *****                    |'):	
+							for i in (i for i,x in enumerate(res) if x[0:2] == '6|' and 'RELAZIONE' in x.upper() and 'TECNICA' in x.upper()):	
 								#print(i)						
 								lib = res[1:i]					
 			except: 
@@ -733,7 +733,7 @@ def loadFile(fname,extent):
 		except:
 			f = codecs.open(fname, 'r', 'cp1252')
 		for data in f:
-			if '***** Relazione  Tecnica *****' in data:
+			if 'RELAZIONE' and 'TECNICA' in data:
 				break	# finisce la lettura
 			# pulisce la riga
 			data = data.rstrip('\n')
@@ -2682,12 +2682,12 @@ class topog4qgis:
 							for comune in comunt_list:
 								comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
 						new_com_cod = comunt_dict [cod_com [:4]] [0] + cod_com [4:]                                
-						nomePFold.append(tmp_line[1])
-						nomePFnew.append(tmp_line[1][:tmp_line[1].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:])
-			print(old_com_cod,new_com_cod)        
-			#print(set(nomePFold))
-			#print(set(nomePFnew))                        
-			#print(self.libretto)            
+						#nomePFold.append(tmp_line[1])
+						#nomePFnew.append(tmp_line[1][:tmp_line[1].index(cod_com)] + comunt_dict [cod_com [:4]] [0] + cod_com [4:])
+			old, new = old_com_cod, new_com_cod
+			for i, v in enumerate(self.libretto):
+				if old in v:
+					self.libretto[i] = v.replace(old, new)                                                
 			#fine aggiunta su input di Michele Gaspari                                                
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
