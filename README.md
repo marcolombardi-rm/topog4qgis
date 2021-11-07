@@ -18,7 +18,7 @@ Dalla versione 0.3.1 e' anche possibile l'esportazione in formato .csv del rilie
 
 Siamo disponibili, anzi auspichiamo, liberi commenti, critiche e contributi; speriamo che possiate divertirvi usando questo plugin. 
 
-All'indirizzo web https://github.com/marcolombardi-rm/topog4qgis/wiki troverete una breve guida per l'utilizzo del plugin.
+All'indirizzo web https://topog4qgis.wordpress.com/ troverete un blog con una breve guida per l'utilizzo del plugin.
 
 Per il corretto funzionamento è necessario utilizzare il giusto Sistema di Riferimento CASSINI-SOLDNER o GAUSS-BOAGA.
 
