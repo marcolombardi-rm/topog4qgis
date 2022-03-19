@@ -1,4 +1,6 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2022-03-19 v0.3.8
+	risolto un bug che si presentava quando nel libretto non erano presenti PF con il formato PFxx/yyy/zzz 
 2021-07-24 v0.3.7
 	questa versione raccoglie diversi contributi del Geometra Michele Gaspari: il primo contributo permette di convertire automaticamente i vecchi codici catastali attraverso l'uso del file comunt.dat fornito dall'agenzia delle entrate; 
 	il secondo contributo tratta in maniera piu' efficace il riconoscimento della relazione tecnica; il terzo contributo risolve il bug dovuto alla mancanza del dato altimetrico sulle righe 1 di alcuni vecchi libretti.
