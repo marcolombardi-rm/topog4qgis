@@ -8,7 +8,7 @@ topog4qgis		A QGIS plugin Tools for managing Topographic tool on vector
         begin                : 2013-10-30
         copyright            : (C) 2013 by Giuliano Curti (orinal author)
         email                : giulianc51@gmail.com
-        updated on           : 2021-07-23
+        updated on           : 2026-01-08
         maintainer           : Marco Lombardi
         email                : marco.lombardi.rm@gmail.com
  ***************************************************************************/
@@ -2059,8 +2059,8 @@ class TAFdlg(QDialog):
 # ======================== classe principale ========================
 
 class topog4qgis:
-	vers = '0.3.7'
-	build_date = '2021-07-23'
+	vers = '0.3.9'
+	build_date = '2026-01-08'
 	author = 'giuliano curti (giulianc51@gmail.com)'
 	contributor = 'giuseppe patti (gpatt@tiscali.it)'
 	maintainer = 'marco lombardi (marco.lombardi.rm@gmail.com)'
@@ -2167,7 +2167,7 @@ class topog4qgis:
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
 		self.iface.addPluginToMenu("topog4qgis", self.action)
-		self.dlg.setWindowTitle("topog4qgis v0.3.7")
+		self.dlg.setWindowTitle("topog4qgis v0.3.9")
 		self.dlg.setFixedSize(320,120)        
         # -------- file menubar ------------
 		mb = QMenuBar(self.dlg)
@@ -2650,7 +2650,8 @@ class topog4qgis:
 			self.bDistPfArch.setDisabled(True)
 			self.bMisurList.setEnabled(True)            
 		else:
-			print("Non ci sono vertici misurati nel libretto")              
+			print("Non ci sono vertici misurati nel libretto") 
+		self.bGeorefWGS84.setDisabled(True)			
 
 	def importaLibretto(self):
 		root = QgsProject.instance().layerTreeRoot()
@@ -2673,14 +2674,14 @@ class topog4qgis:
 			new_libretto = []            
 			comunt_list = []
 			comunt_dict = dict()
+			old = ""			
 			nomePFold = []
 			nomePFnew = []            
 			for line in self.libretto:
 				tmp_line = line.split("|")               
 				if "/" in tmp_line[1]:                
 					cod_com = tmp_line[1].split("/")#tmp_line[1][::-1][:tmp_line[1].index("/")][::-1]
-					cod_com = cod_com[2]
-					old = ""                    
+					cod_com = cod_com[2]                    
 					try:
 						if len(cod_com) > 4: 
 							cod_com = cod_com[:-1]                           
@@ -2696,11 +2697,12 @@ class topog4qgis:
 								comunt_dict [comune[62:66]] = [comune[1:5],comune[24:26],comune[28:62].strip(' ')]
 						new_com_cod = comunt_dict [cod_com [:4]] [0] + cod_com [4:]                                
 						old, new = old_com_cod, new_com_cod
+					self.bPfTaf.setEnabled(True)					
 			if old != "":                        
 				for i, v in enumerate(self.libretto):
 					if old in v:
-						self.libretto[i] = v.replace(old, new)                                                
-			#fine aggiunta su input di Michele Gaspari                                                
+						self.libretto[i] = v.replace(old, new)						
+			#fine aggiunta su input di Michele Gaspari				
 			print("Lette %d registrazioni" % len((self.libretto)))
 			# legge registrazioni gps
 			myGps = openLibretto_gps(self.libretto)
@@ -2864,7 +2866,7 @@ class topog4qgis:
 							    	#print(i,l[5],l[0])
 							    	l[l.index(l[1])] = l[1] + xs-xd 
 							    	l[l.index(l[2])] = l[2] + ys-yd
-							    	l[l.index(l[3])] = l[3] + zs-yd                                    
+							    	l[l.index(l[3])] = l[3] + zs-zd                                    
 							    	#print(xs-xd,ys-yd,zs-zd) #delta x,y,z                                    
 							    	#self.misurati.pop(i)	# toglie da misurati                                    
 							lst.clear()      
@@ -2913,7 +2915,7 @@ class topog4qgis:
 			# attiva le voci di menu
 			self.bImpEDM.setEnabled(True)
 			self.bImpLib.setEnabled(True)
-			self.bPfTaf.setEnabled(True)
+			#self.bPfTaf.setEnabled(True)
 			self.bPSR.setEnabled(True)            
 			self.bViewLib.setEnabled(True)
 			self.bPfRil.setEnabled(True)

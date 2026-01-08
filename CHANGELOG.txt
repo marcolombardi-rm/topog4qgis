@@ -1,4 +1,8 @@
 ----------- topog4qgis.py: CHANGELOG ---------------
+2026-01-08 v0.3.9
+	corretto un errore nella trattazione di stazioni celerimetriche multiple
+2022-03-19 v0.3.8
+	risolto un bug che si presentava quando nel libretto non erano presenti PF con il formato PFxx/yyy/zzz 
 2021-07-24 v0.3.7
 	questa versione raccoglie diversi contributi del Geometra Michele Gaspari: il primo contributo permette di convertire automaticamente i vecchi codici catastali attraverso l'uso del file comunt.dat fornito dall'agenzia delle entrate; 
 	il secondo contributo tratta in maniera piu' efficace il riconoscimento della relazione tecnica; il terzo contributo risolve il bug dovuto alla mancanza del dato altimetrico sulle righe 1 di alcuni vecchi libretti.
@@ -36,19 +40,19 @@
 	rimane da sistemare la funzione "Importa archivio distanze PF"
 2020-04-29 v0.2
 	dalla versione 0.2 sono gestiti anche i rilievi misti TPS-GPS
-	aggiunta tra le funzioni la possibilità di stampare su console Python le letture celerimetriche
+	aggiunta tra le funzioni la possibilit  di stampare su console Python le letture celerimetriche
 	corretti alcuni bugs nel render dei contorni letti da riga 7
 	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 2020-04-13
 	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 	i rilievi misti TPS+GPS necessitano di una routine specifica
 	ripristinata la navigazione poligonale
-	aggiunta tra le funzioni la possibilità di verificare le distanze tra PF da TAF e tra PF da libretti
+	aggiunta tra le funzioni la possibilit  di verificare le distanze tra PF da TAF e tra PF da libretti
 2020-04-11
 	rimangono ancora da sistemare le funzioni "vedi Libretto" e "Importa archivio distanze PF"
 	i rilievi misti TPS+GPS necessitano di una routine specifica
-	aggiunta tra le funzioni la possibilità di verificare i baricentri tra i PF ufficiali e quelli misurati
-	adesso i libretti vengono rototraslati in modo baricentrico così da restituire un risultato più simile a PreGeo
+	aggiunta tra le funzioni la possibilit  di verificare i baricentri tra i PF ufficiali e quelli misurati
+	adesso i libretti vengono rototraslati in modo baricentrico cos  da restituire un risultato pi  simile a PreGeo
 	la rototraslazione viene effettuata anche su PF ricadenti su Fogli diversi da quello dell'oggetto del rilievo
 	rototraslazione separata in due routine diverse: una per rilievi TS e una per rilievi GPS
 2020-04-05 v0.1
@@ -97,7 +101,7 @@
 	conservazione dell'archivio delle misurate prima del mashup con i PF
 	libretto conservato in ram e modifica delle procedure di I/O
 	anticipato il trattamento degli allineamenti prima della collimazione finale
-	completato il trattamento (un pò empirico) delle misure GPS: queste sono trasformate
+	completato il trattamento (un p  empirico) delle misure GPS: queste sono trasformate
 		dal riferimento geocentrico al riferimento topocentrico con origine nella baseline;
 		quando viene rilevata una baseline GPS,questa viene assunta come riferimento per
 		tutte le altre letture (per ora celerimetriche e allineamenti, ecc.) 
